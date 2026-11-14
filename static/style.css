@@ -1,44 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;500;600&display=swap');
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #2b2b2b; background: #fdf8f4; line-height: 1.6; }
 
-header {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(253,248,244,0.95); backdrop-filter: blur(8px);
-  border-bottom: 1px solid #f0e2d8; padding: 16px 24px;
-  display: flex; justify-content: space-between; align-items: center;
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #fcfbfa;
+    color: #2c2c2c;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
-header h1 { font-size: 1.5rem; color: #b5651d; letter-spacing: 1px; }
-nav a { margin-left: 24px; text-decoration: none; color: #2b2b2b; font-weight: 500; }
-nav a:hover { color: #b5651d; }
 
-.hero { text-align: center; padding: 70px 24px 50px; background: linear-gradient(135deg,#fdf8f4 0%,#f7e8dc 100%); }
-.hero h2 { font-size: 2.4rem; margin-bottom: 12px; }
-.hero p { font-size: 1.1rem; color: #6b6b6b; }
+/* Шапка */
+header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(252, 251, 250, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #f0e6dd;
+    padding: 20px 5%;
+    display: flex; justify-content: space-between; align-items: center;
+}
+header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    color: #4a3b32;
+    letter-spacing: 3px;
+    font-weight: 600;
+}
+nav a {
+    margin-left: 30px;
+    text-decoration: none;
+    color: #7a6b63;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: color 0.3s ease;
+}
+nav a:hover { color: #b8865c; }
 
-.filters { text-align: center; padding: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.filters button { padding: 10px 20px; border: 2px solid #b5651d; background: transparent; color: #b5651d; border-radius: 30px; cursor: pointer; font-weight: 600; }
-.filters button.active, .filters button:hover { background: #b5651d; color: #fff; }
+/* Главный экран */
+.hero {
+    text-align: center;
+    padding: 120px 20px;
+    background: linear-gradient(135deg, #fdfbf9 0%, #f4ece6 100%);
+    margin-bottom: 50px;
+}
+.hero h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem;
+    color: #4a3b32;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+.hero p {
+    font-size: 1.1rem;
+    color: #8c7d75;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
 
-.products { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
-.card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-decoration: none; color: inherit; transition: transform .2s, box-shadow .2s; }
-.card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
-.card .img { height: 220px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: #f7e8dc; overflow: hidden; }
-.card .img img { width: 100%; height: 100%; object-fit: cover; }
-.card h3 { padding: 14px 16px 4px; font-size: 1.05rem; }
-.card .price { padding: 0 16px 16px; font-weight: 700; color: #b5651d; font-size: 1.15rem; }
+/* Фильтры */
+.filters {
+    display: flex; justify-content: center; gap: 15px;
+    margin-bottom: 50px; flex-wrap: wrap;
+}
+.filters button {
+    padding: 12px 28px;
+    border: 1px solid #d6c7bd;
+    background: transparent;
+    color: #7a6b63;
+    border-radius: 40px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+.filters button:hover, .filters button.active {
+    background: #4a3b32;
+    color: #fff;
+    border-color: #4a3b32;
+    transform: translateY(-2px);
+}
 
-.product-page { max-width: 900px; margin: 40px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-.product-page .img { background: #f7e8dc; border-radius: 16px; height: 350px; display: flex; align-items: center; justify-content: center; font-size: 5rem; overflow: hidden; }
+/* Карточки товаров */
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto 100px;
+    padding: 0 20px;
+}
+.card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 10px 30px rgba(74, 59, 50, 0.05);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid #f0e6dd;
+    display: flex; flex-direction: column;
+}
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(74, 59, 50, 0.1);
+}
+.card .img {
+    height: 320px;
+    background: #f9f6f3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    overflow: hidden;
+}
+.card .img img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s ease;
+}
+.card:hover .img img { transform: scale(1.08); }
+.card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: #4a3b32;
+    padding: 20px 20px 5px;
+    text-align: center;
+}
+.card .price {
+    color: #b8865c;
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 0 20px 25px;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* Страница одного товара */
+.product-page {
+    max-width: 1100px;
+    margin: 80px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+.product-page .img {
+    background: #f9f6f3;
+    border-radius: 20px;
+    height: 500px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8rem;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+}
 .product-page .img img { width: 100%; height: 100%; object-fit: cover; }
-.product-page h2 { margin-bottom: 12px; }
-.product-page .price { font-size: 1.6rem; color: #b5651d; font-weight: 700; margin-bottom: 16px; }
-.product-page p { color: #555; margin-bottom: 24px; }
+.product-page h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    color: #4a3b32;
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+.product-page .price {
+    font-size: 2rem;
+    color: #b8865c;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+.product-page p {
+    color: #666;
+    font-size: 1.05rem;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
 
-.buy { display: inline-block; background: #b5651d; color: #fff; padding: 13px 32px; border-radius: 30px; text-decoration: none; font-weight: 600; transition: background .2s; }
-.buy:hover { background: #9a5418; }
+/* Кнопки */
+.buy {
+    display: inline-block;
+    background: #4a3b32;
+    color: #fff;
+    padding: 18px 45px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+.buy:hover {
+    background: #b8865c;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(184, 134, 92, 0.3);
+}
 
-@media (max-width: 700px) {
-  .product-page { grid-template-columns: 1fr; }
-  .hero h2 { font-size: 1.8rem; }
-  nav { display: none; }
+/* Адаптив */
+@media (max-width: 768px) {
+    .hero h2 { font-size: 2.8rem; }
+    .product-page { grid-template-columns: 1fr; gap: 30px; margin: 40px auto; }
+    .product-page .img { height: 350px; }
+    header { flex-direction: column; gap: 15px; padding: 20px; }
+    nav { margin: 0; }
 }
