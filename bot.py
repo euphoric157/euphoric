@@ -1,0 +1,73 @@
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, ConversationHandler
+import sqlite3, os
+
+TOKEN = "ВСТАВЬ_ТОКЕН_ОТ_BOTFATHER"
+ADMIN_CHAT_ID = 123456789  # твой ID от @userinfobot
+
+NAME, PHONE, ADDRESS = range(3)
+
+def get_product(pid):
+    if not os.path.exists("database.db"): return None
+    conn = sqlite3.connect("database.db"); conn.row_factory = sqlite3.Row
+    p = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
+    conn.close(); return p
+
+async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    args = ctx.args
+    if args and args[0].startswith("buy_"):
+        pid = int(args[0].replace("buy_", ""))
+        p = get_product(pid)
+        if not p:
+            await update.message.reply_text("Товар не найден 😔")
+            return ConversationHandler.END
+        ctx.user_data["product"] = dict(p)
+        await update.message.reply_text(
+            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\n"
+            "Как вас зовут?", parse_mode="Markdown")
+        return NAME
+    await update.message.reply_text(
+        "Добро пожаловать в *EUPHORIC* ✨\n\n"
+        "Здесь можно заказать сумки, шкатулки и ёлочные игрушки ручной работы.\n\n"
+        "Выберите товар на сайте — и нажмите «Купить».",
+        parse_mode="Markdown")
+    return ConversationHandler.END
+
+async def get_name(update, ctx):
+    ctx.user_data["name"] = update.message.text
+    await update.message.reply_text("Ваш телефон для связи?")
+    return PHONE
+
+async def get_phone(update, ctx):
+    ctx.user_data["phone"] = update.message.text
+    await update.message.reply_text("Адрес доставки или «самовывоз»?")
+    return ADDRESS
+
+async def get_address(update, ctx):
+    ctx.user_data["address"] = update.message.text
+    d = ctx.user_data; p = d["product"]
+    order = (f"🆕 *НОВЫЙ ЗАКАЗ*\n\n"
+             f"Товар: {p['title']} (ID {p['id']})\n"
+             f"Цена: {p['price']} ₽\n\n"
+             f"Имя: {d['name']}\nТелефон: {d['phone']}\nАдрес: {d['address']}\n"
+             f"Username: @{update.effective_user.username or '—'}")
+    await ctx.bot.send_message(ADMIN_CHAT_ID, order, parse_mode="Markdown")
+    await update.message.reply_text("Спасибо! Заказ принят ✅\nМы свяжемся с вами в ближайшее время.")
+    return ConversationHandler.END
+
+async def cancel(update, ctx):
+    await update.message.reply_text("Отменено.")
+    return ConversationHandler.END
+
+app = ApplicationBuilder().token(TOKEN).build()
+conv = ConversationHandler(
+    entry_points=[CommandHandler("start", start)],
+    states={
+        NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
+        PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
+        ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_address)],
+    },
+    fallbacks=[CommandHandler("cancel", cancel)],
+)
+app.add_handler(conv)
+app.run_polling()

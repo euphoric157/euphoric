@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мастер-классы — EUPHORIC</title>
+<link rel="stylesheet" href="/static/style.css"></head><body>
+<header><h1>EUPHORIC</h1>
+<nav><a href="/">Каталог</a> <a href="/workshops">Мастер-классы</a></nav></header>
+<section style="padding:50px 24px;">
+  <h2 style="text-align:center;margin-bottom:12px;">Мастер-классы</h2>
+  <p style="text-align:center;color:#6b6b6b;margin-bottom:40px;">Скоро здесь появятся видео и материалы</p>
+  <div class="products">
+  {% for w in workshops %}
+    <div class="card">
+      <div class="img">{% if w['image'] %}<img src="/static/uploads/{{ w['image'] }}">{% else %}🎓{% endif %}</div>
+      <div style="padding:16px;">
+        <h3>{{ w['title'] }}</h3>
+        <p style="color:#6b6b6b;font-size:.9rem;">{{ w['description'] }}</p>
+        {% if w['link'] %}<a href="{{ w['link'] }}" target="_blank" class="buy" style="margin-top:10px;display:inline-block;">Открыть</a>{% endif %}
+      </div>
+    </div>
+  {% else %}
+    <p style="text-align:center;grid-column:1/-1;color:#888;">Пока нет мастер-классов.</p>
+  {% endfor %}
+  </div>
+</section>
+</body></html>
