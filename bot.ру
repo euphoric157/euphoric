@@ -56,7 +56,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", parse_mode="Markdown")
     return ConversationHandler.END
 
-    elif args and args[0].startswith("buy_"):
+elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
