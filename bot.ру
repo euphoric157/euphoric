@@ -22,31 +22,58 @@ def get_product(pid):
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = ctx.args
     if args and args[0].startswith("buy_cart_"):
-        ids_str = args[0].replace("buy_cart_", "")
-        ids = [int(i) for i in ids_str.split(",")]
+        # Корзина: buy_cart_id1_назв1_цена1,id2_назв2_цена2
+        items_str = args[0].replace("buy_cart_", "")
+        items = items_str.split(",")
         
         cart_titles = []
         total_price = 0
-        for pid in ids:
-            p = get_product(pid)
-            if p:
-                cart_titles.append(f"• {p['title']} ({p['price']} ₽)")
-                total_price += p['price']
+        
+        for item in items:
+            parts = item.split("_")
+            if len(parts) >= 3:
+                title = parts[1].replace("%20", " ") # Убираем пробелы
+                price = int(parts[2])
+                cart_titles.append(f"• {title} ({price} ₽)")
+                total_price += price
         
         if not cart_titles:
-            await update.message.reply_text("Товары не найдены 😔")
+            await update.message.reply_text("Ошибка корзины 😔")
             return ConversationHandler.END
             
         ctx.user_data["product"] = {
             "title": "Ваш заказ:\n" + "\n".join(cart_titles), 
             "price": total_price, 
-            "id": ids_str
+            "id": "cart"
         }
         await update.message.reply_text(
             f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", 
             parse_mode="Markdown"
         )
         return NAME
+
+    elif args and args[0].startswith("buy_"):
+        # Один товар: buy_id_название_цена
+        parts = args[0].replace("buy_", "").split("_")
+        if len(parts) >= 3:
+            title = parts[1].replace("%20", " ")
+            price = int(parts[2])
+            
+            ctx.user_data["product"] = {"title": title, "price": price, "id": parts[0]}
+            await update.message.reply_text(
+                f"🛍 *{title}*\n\n💰 Цена: {price} ₽\n\nКак вас зовут?", 
+                parse_mode="Markdown"
+            )
+            return NAME
+        else:
+            await update.message.reply_text("Ошибка данных товара 😔")
+            return ConversationHandler.END
+        
+    await update.message.reply_text(
+        "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", 
+        parse_mode="Markdown"
+    )
+    return ConversationHandler.END
 
     elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
