@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = os.environ.get("TOKEN_BOT")
+TOKEN = os.environ.get("BOT_TOKEN", "ВСТАВЬ_СЮДА_ТОКЕН")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 
 NAME, PHONE, ADDRESS = range(3)
@@ -37,12 +37,18 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Товары не найдены 😔")
             return ConversationHandler.END
             
-        ctx.user_data["product"] = {"title": "Ваш заказ:\n" + "\n".join(cart_titles), "price": total_price, "id": ids_str}
+        ctx.user_data["product"] = {
+            "title": "Ваш заказ:\n" + "\n".join(cart_titles), 
+            "price": total_price, 
+            "id": ids_str
+        }
         await update.message.reply_text(
-            f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", parse_mode="Markdown")
+            f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", 
+            parse_mode="Markdown"
+        )
         return NAME
-    
-elif args and args[0].startswith("buy_"):
+
+    elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
@@ -50,10 +56,15 @@ elif args and args[0].startswith("buy_"):
             return ConversationHandler.END
         ctx.user_data["product"] = dict(p)
         await update.message.reply_text(
-            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", parse_mode="Markdown")
+            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", 
+            parse_mode="Markdown"
+        )
         return NAME
         
-    await update.message.reply_text("Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", parse_mode="Markdown")
+    await update.message.reply_text(
+        "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", 
+        parse_mode="Markdown"
+    )
     return ConversationHandler.END
 
 async def get_name(update, ctx):
@@ -70,11 +81,24 @@ async def get_address(update, ctx):
     ctx.user_data["address"] = update.message.text
     d = ctx.user_data
     p = d["product"]
+    
+    try:
+        conn = sqlite3.connect("database.db")
+        ids = str(p['id']).split(',')
+        for pid in ids:
+            if pid.strip().isdigit():
+                conn.execute("UPDATE products SET sales = sales + 1 WHERE id=?", (int(pid),))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print("Ошибка при обновлении счетчика продаж:", e)
+
     order = (f"🆕 *НОВЫЙ ЗАКАЗ*\n\n"
              f"Товар: {p['title']} (ID {p['id']})\n"
              f"Цена: {p['price']} ₽\n\n"
              f"Имя: {d['name']}\nТелефон: {d['phone']}\nАдрес: {d['address']}\n"
              f"Username: @{update.effective_user.username or '—'}")
+             
     await ctx.bot.send_message(ADMIN_CHAT_ID, order, parse_mode="Markdown")
     await update.message.reply_text("Спасибо! Заказ принят ✅\nМы свяжемся с вами в ближайшее время.")
     return ConversationHandler.END
