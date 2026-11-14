@@ -1,17 +1,23 @@
+import os
+import sqlite3
+import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, ConversationHandler
-import sqlite3, os
 
-TOKEN = "ВСТАВЬ_ТОКЕН_ОТ_BOTFATHER"
-ADMIN_CHAT_ID = 123456789  # твой ID от @userinfobot
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+TOKEN = os.environ.get("9084419682:AAH5EtMMZiDYbysbPfZdFUVSH4wmoJclxno")
+ADMIN_CHAT_ID = int(os.environ.get("795845732", 0))
 
 NAME, PHONE, ADDRESS = range(3)
 
 def get_product(pid):
     if not os.path.exists("database.db"): return None
-    conn = sqlite3.connect("database.db"); conn.row_factory = sqlite3.Row
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
     p = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
-    conn.close(); return p
+    conn.close()
+    return p
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = ctx.args
@@ -19,7 +25,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
-            await update.message.reply_text("Товар не найден 😔")
+            await update.message.reply_text("Товар не найден 😔 Возможно, он уже продан.")
             return ConversationHandler.END
         ctx.user_data["product"] = dict(p)
         await update.message.reply_text(
@@ -29,7 +35,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Добро пожаловать в *EUPHORIC* ✨\n\n"
         "Здесь можно заказать сумки, шкатулки и ёлочные игрушки ручной работы.\n\n"
-        "Выберите товар на сайте — и нажмите «Купить».",
+        "Выберите товар на сайте и нажмите «Купить».",
         parse_mode="Markdown")
     return ConversationHandler.END
 
@@ -45,7 +51,8 @@ async def get_phone(update, ctx):
 
 async def get_address(update, ctx):
     ctx.user_data["address"] = update.message.text
-    d = ctx.user_data; p = d["product"]
+    d = ctx.user_data
+    p = d["product"]
     order = (f"🆕 *НОВЫЙ ЗАКАЗ*\n\n"
              f"Товар: {p['title']} (ID {p['id']})\n"
              f"Цена: {p['price']} ₽\n\n"
