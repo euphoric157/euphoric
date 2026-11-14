@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from functools import wraps
 
-app = Flask(name)
+app = Flask(__name__)
 app.secret_key = "euphoric-secret-2025-change-me"
 ADMIN_PASSWORD = "euphoric2025"
 UPLOAD_FOLDER = "static/uploads"
