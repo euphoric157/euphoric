@@ -10,7 +10,7 @@ app.secret_key = "euphoric-secret-2025-change-me"
 ADMIN_PASSWORD = "euphoric2025"
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-BOT_USERNAME = "EUPHORIC_shop_bot"
+BOT_USERNAME = "euphoricbags_bot"
 
 def db():
     conn = sqlite3.connect("database.db")
