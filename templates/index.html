@@ -75,9 +75,8 @@
         <button class="buy" style="width:100%;" onclick="checkout()">Оформить заказ в Telegram</button>
     </div>
 </div>
-
 <script>
-// --- 1. ПОИСК ---
+// 1. ПОИСК
 function searchProducts() {
     let query = document.getElementById('search-input').value.toLowerCase();
     let cards = document.querySelectorAll('.card');
@@ -87,7 +86,7 @@ function searchProducts() {
     });
 }
 
-// --- 2. ФИЛЬТРЫ И СОРТИРОВКА ---
+// 2. ФИЛЬТРЫ (КАТЕГОРИИ И СОРТИРОВКА)
 function filter(cat, e){
   document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
   e.target.classList.add('active');
@@ -95,30 +94,35 @@ function filter(cat, e){
   let container = document.getElementById('products-grid');
   let cards = Array.from(container.querySelectorAll('.card'));
 
-  // Сортировка для "Новинок" и "Популярных"
+  // Если нажали Новинки или Популярные — сортируем
   if(cat === 'new') {
       cards.sort((a, b) => b.getAttribute('data-id') - a.getAttribute('data-id'));
   } else if(cat === 'popular') {
       cards.sort((a, b) => b.getAttribute('data-sales') - a.getAttribute('data-sales'));
   }
 
+  // Показываем/скрываем карточки
   cards.forEach(c => {
       if (cat === 'all' || cat === 'new' || cat === 'popular') {
           c.style.display = '';
       } else {
           c.style.display = (c.dataset.cat === cat) ? '' : 'none';
       }
-      container.appendChild(c); // Переставляем элементы при сортировке
+      container.appendChild(c); // Переставляем карточки (для сортировки)
   });
 }
 
-// --- 3. ИЗБРАННОЕ ---
+// 3. ИЗБРАННОЕ
 function updateFavIcons() {
     let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
     document.querySelectorAll('.fav-icon').forEach(icon => {
-        let id = parseInt(icon.getAttribute('onclick').match(/\d+/)[0]);
-        if (favs.includes(id)) icon.classList.add('active');
-        else icon.classList.remove('active');
+        // Достаем ID из атрибута onclick
+        let match = icon.getAttribute('onclick').match(/\d+/);
+        if (match) {
+            let id = parseInt(match[0]);
+            if (favs.includes(id)) icon.classList.add('active');
+            else icon.classList.remove('active');
+        }
     });
 }
 updateFavIcons();
@@ -141,10 +145,11 @@ function showFavorites() {
     });
 }
 
-// --- 4. КОРЗИНА ---
+// 4. КОРЗИНА
 function updateCartCount() {
     let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
-    document.getElementById('cart-count').innerText = cart.length;
+    let el = document.getElementById('cart-count');
+    if(el) el.innerText = cart.length;
 }
 updateCartCount();
 
@@ -177,14 +182,14 @@ function checkout() {
     let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
     if (cart.length === 0) { alert('Корзина пуста!'); return; }
     
-    // Собираем данные в формате: id_название_цена
-    let items = cart.map(item => ${item.id}_${encodeURIComponent(item.title)}_${item.price}).join(',');
+    let items = cart.map(item => `${item.id}_${encodeURIComponent(item.title)}_${item.price}`).join(',');
     
     localStorage.removeItem('euphoric_cart');
     window.open('https://t.me/{{ bot }}?start=buy_cart_' + items, '_blank');
     closeCart();
     updateCartCount();
 }
-</script>
+</script> 
+
 </body>
 </html>
