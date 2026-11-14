@@ -42,21 +42,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", parse_mode="Markdown")
         return NAME
 
-    elif args and args[0].startswith("buy_"):
-        pid = int(args[0].replace("buy_", ""))
-        p = get_product(pid)
-        if not p:
-            await update.message.reply_text("Товар не найден 😔")
-            return ConversationHandler.END
-        ctx.user_data["product"] = dict(p)
-        await update.message.reply_text(
-            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", parse_mode="Markdown")
-        return NAME
-        
-    await update.message.reply_text("Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", parse_mode="Markdown")
-    return ConversationHandler.END
-
-elif args and args[0].startswith("buy_"):
+ elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
