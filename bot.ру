@@ -41,8 +41,8 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", parse_mode="Markdown")
         return NAME
-
-   elif args and args[0].startswith("buy_"):
+    
+elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
