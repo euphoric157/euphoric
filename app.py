@@ -10,7 +10,7 @@ app.secret_key = "euphoric-secret-2025-change-me"
 ADMIN_PASSWORD = "euphoric2025"
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-BOT_USERNAME = "EUPHORIC_shop_bot" # Замени на свой, если надо
+BOT_USERNAME = "EUPHORIC_shop_bot"
 
 def db():
     conn = sqlite3.connect("database.db")
@@ -19,6 +19,7 @@ def db():
 
 def init_db():
     conn = db()
+    # Добавили колонку sales (по умолчанию 0)
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +28,7 @@ def init_db():
         description TEXT,
         price INTEGER NOT NULL,
         image TEXT,
+        sales INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS workshops (
@@ -62,6 +64,7 @@ def login_required(f):
 @app.route("/")
 def index():
     conn = db()
+    # Передаем все товары для главной страницы
     products = conn.execute("SELECT * FROM products ORDER BY id DESC").fetchall()
     conn.close()
     return render_template("index.html", products=products, bot=BOT_USERNAME)
