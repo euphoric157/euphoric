@@ -20,7 +20,7 @@
     <p>{{ p['description'] }}</p>
     <div style="display:flex; gap:15px; flex-wrap:wrap;">
         <button class="buy" onclick="addToCart({{ p['id'] }}, '{{ p['title'] }}', {{ p['price'] }})">В корзину</button>
-        <a class="buy" style="background: #c9a96e; color: #0a0a0a;" href="https://t.me/{{ bot }}?start=buy_{{ p['id'] }}" target="_blank">Купить сейчас</a>
+        <a class="buy" style="background: #c9a96e; color: #0a0a0a;" href="https://t.me/{{ bot }}?start=buy_{{ p['id'] }}_{{ p['title']|urlencode }}_{{ p['price'] }}" target="_blank">Купить сейчас</a>
     </div>
   </div>
 </main>
