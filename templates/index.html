@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EUPHORIC — Эксклюзивные аксессуары ручной работы</title>
+<title>EUPHORIC — Эксклюзивные аксессуары</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
@@ -14,39 +14,53 @@
     <h1>EUPHORIC</h1>
     <nav>
         <a href="/">Каталог</a> 
+        <a href="/reviews">Отзывы</a>
         <a href="/workshops">Мастер-классы</a>
+        <a href="#" onclick="openCart()" style="color: #c9a96e;">Корзина (<span id="cart-count">0</span>)</a>
     </nav>
 </header>
 
 <section class="hero">
     <h2>Искусство в каждой детали</h2>
-    <p>Сумки из бусин · Шкатулки · Новогодние игрушки</p>
+    <p>Сумки · Шкатулки · Топы · Новогодние игрушки</p>
 </section>
 
 <section class="filters">
   <button onclick="filter('all', event)" class="active">Все</button>
   <button onclick="filter('bags', event)">Сумки</button>
   <button onclick="filter('boxes', event)">Шкатулки</button>
-  <button onclick="filter('toys', event)">Игрушки</button>
+  <button onclick="filter('tops', event)">Топы</button>
+  <button onclick="filter('toys', event)">Новогодние игрушки</button>
 </section>
 
 <section class="products">
 {% for p in products %}
-  <a class="card" data-cat="{{ p['category'] }}" href="/product/{{ p['id'] }}">
-    <div class="img">
-      {% if p['image'] %}
-        <img src="/static/uploads/{{ p['image'] }}" alt="{{ p['title'] }}">
-      {% else %}
-        <span style="color: #c9a96e;">✦</span>
-      {% endif %}
+  <div class="card" data-cat="{{ p['category'] }}">
+    <a href="/product/{{ p['id'] }}" style="text-decoration:none; color:inherit;">
+      <div class="img">
+        {% if p['image'] %}<img src="/static/uploads/{{ p['image'] }}" alt="{{ p['title'] }}">{% else %}<span style="color: #c9a96e;">✦</span>{% endif %}
+      </div>
+      <h3>{{ p['title'] }}</h3>
+      <div class="price">{{ p['price'] }} ₽</div>
+    </a>
+    <div style="padding: 0 20px 20px; text-align: center;">
+        <button class="buy" style="width: 100%; padding: 12px; font-size: 0.7rem;" onclick="addToCart({{ p['id'] }}, '{{ p['title'] }}', {{ p['price'] }})">В корзину</button>
     </div>
-    <h3>{{ p['title'] }}</h3>
-    <div class="price">{{ p['price'] }} ₽</div>
-  </a>
+  </div>
 {% else %}
-  <p style="text-align:center; grid-column:1/-1; color:#888; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem;">Коллекция скоро пополнится</p>
+  <p style="text-align:center; grid-column:1/-1; color:#888; letter-spacing: 2px; text-transform: uppercase;">Коллекция скоро пополнится</p>
 {% endfor %}
 </section>
+
+<!-- Модальное окно корзины -->
+<div id="cart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:#111; border: 1px solid #c9a96e; padding: 40px; max-width: 500px; width: 90%; position: relative;">
+        <span onclick="closeCart()" style="position:absolute; top:15px; right:20px; color:#c9a96e; font-size:24px; cursor:pointer;">×</span>
+        <h2 style="font-family:'Cormorant Garamond', serif; color:#e8dcc8; margin-bottom:20px; font-size:2rem;">Ваша корзина</h2>
+        <div id="cart-items" style="margin-bottom: 30px; color: #ccc; max-height: 300px; overflow-y: auto;"></div>
+        <button class="buy" style="width:100%;" onclick="checkout()">Оформить заказ в Telegram</button>
+    </div>
+</div>
 
 <script>
 function filter(cat, e){
@@ -56,7 +70,56 @@ function filter(cat, e){
     c.style.display = (cat==='all'||c.dataset.cat===cat) ? '' : 'none';
   });
 }
-</script>
 
+function updateCartCount() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    document.getElementById('cart-count').innerText = cart.length;
+}
+updateCartCount();
+
+function addToCart(id, title, price) {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    if (!cart.find(item => item.id === id)) {
+        cart.push({ id: id, title: title, price: price });
+        localStorage.setItem('euphoric_cart', JSON.stringify(cart));
+        updateCartCount();
+        alert('Товар добавлен в корзину!');
+    } else {
+        alert('Этот товар уже в корзине');
+    }
+}
+
+function openCart() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    let container = document.getElementById('cart-items');
+    container.innerHTML = '';
+    if (cart.length === 0) {
+        container.innerHTML = '<p style="color:#888;">Ваша корзина пуста.</p>';
+    } else {
+        cart.forEach((item, index) => {
+            container.innerHTML += `
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+                    <span>${item.title}</span>
+                    <span style="color:#c9a96e;">${item.price} ₽</span>
+                </div>`;
+        });
+    }
+    document.getElementById('cart-modal').style.display = 'flex';
+}
+
+function closeCart() {
+    document.getElementById('cart-modal').style.display = 'none';
+}
+
+function checkout() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    if (cart.length === 0) { alert('Корзина пуста!'); return; }
+    let ids = cart.map(item => item.id).join(',');
+    localStorage.removeItem('euphoric_cart');
+    window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
+    closeCart();
+    updateCartCount();
+}
+</script>
 </body>
 </html>
