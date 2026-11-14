@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EUPHORIC — ручные сумки, шкатулки, игрушки</title>
+<title>EUPHORIC — Эксклюзивные аксессуары ручной работы</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
 </header>
 
 <section class="hero">
-    <h2>Ручная работа с любовью</h2>
+    <h2>Искусство в каждой детали</h2>
     <p>Сумки из бусин · Шкатулки · Новогодние игрушки</p>
 </section>
 
@@ -27,7 +27,7 @@
   <button onclick="filter('all', event)" class="active">Все</button>
   <button onclick="filter('bags', event)">Сумки</button>
   <button onclick="filter('boxes', event)">Шкатулки</button>
-  <button onclick="filter('toys', event)">Новогодние игрушки</button>
+  <button onclick="filter('toys', event)">Игрушки</button>
 </section>
 
 <section class="products">
@@ -37,14 +37,14 @@
       {% if p['image'] %}
         <img src="/static/uploads/{{ p['image'] }}" alt="{{ p['title'] }}">
       {% else %}
-        👜
+        <span style="color: #c9a96e;">✦</span>
       {% endif %}
     </div>
     <h3>{{ p['title'] }}</h3>
     <div class="price">{{ p['price'] }} ₽</div>
   </a>
 {% else %}
-  <p style="text-align:center;grid-column:1/-1;color:#888;">Пока нет товаров. Добавь их через админку.</p>
+  <p style="text-align:center; grid-column:1/-1; color:#888; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem;">Коллекция скоро пополнится</p>
 {% endfor %}
 </section>
 
