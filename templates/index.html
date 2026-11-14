@@ -1,21 +1,45 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EUPHORIC — ручные сумки, шкатулки, игрушки</title>
-<link rel="stylesheet" href="/static/style.css"></head><body>
-<header><h1>EUPHORIC</h1>
-<nav><a href="/">Каталог</a> <a href="/workshops">Мастер-классы</a></nav></header>
-<section class="hero"><h2>Ручная работа с любовью</h2>
-<p>Сумки из бусин · Шкатулки · Новогодние игрушки</p></section>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+    <h1>EUPHORIC</h1>
+    <nav>
+        <a href="/">Каталог</a> 
+        <a href="/workshops">Мастер-классы</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>Ручная работа с любовью</h2>
+    <p>Сумки из бусин · Шкатулки · Новогодние игрушки</p>
+</section>
+
 <section class="filters">
   <button onclick="filter('all', event)" class="active">Все</button>
   <button onclick="filter('bags', event)">Сумки</button>
   <button onclick="filter('boxes', event)">Шкатулки</button>
   <button onclick="filter('toys', event)">Новогодние игрушки</button>
 </section>
+
 <section class="products">
 {% for p in products %}
   <a class="card" data-cat="{{ p['category'] }}" href="/product/{{ p['id'] }}">
-    <div class="img">{% if p['image'] %}<img src="/static/uploads/{{ p['image'] }}">{% else %}👜{% endif %}</div>
+    <div class="img">
+      {% if p['image'] %}
+        <img src="/static/uploads/{{ p['image'] }}" alt="{{ p['title'] }}">
+      {% else %}
+        👜
+      {% endif %}
+    </div>
     <h3>{{ p['title'] }}</h3>
     <div class="price">{{ p['price'] }} ₽</div>
   </a>
@@ -23,6 +47,7 @@
   <p style="text-align:center;grid-column:1/-1;color:#888;">Пока нет товаров. Добавь их через админку.</p>
 {% endfor %}
 </section>
+
 <script>
 function filter(cat, e){
   document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
@@ -32,4 +57,6 @@ function filter(cat, e){
   });
 }
 </script>
-</body></html>
+
+</body>
+</html>
