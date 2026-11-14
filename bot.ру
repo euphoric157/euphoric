@@ -21,22 +21,39 @@ def get_product(pid):
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = ctx.args
-    if args and args[0].startswith("buy_"):
+    if args and args[0].startswith("buy_cart_"):
+        ids_str = args[0].replace("buy_cart_", "")
+        ids = [int(i) for i in ids_str.split(",")]
+        
+        cart_titles = []
+        total_price = 0
+        for pid in ids:
+            p = get_product(pid)
+            if p:
+                cart_titles.append(f"• {p['title']} ({p['price']} ₽)")
+                total_price += p['price']
+        
+        if not cart_titles:
+            await update.message.reply_text("Товары не найдены 😔")
+            return ConversationHandler.END
+            
+        ctx.user_data["product"] = {"title": "Ваш заказ:\n" + "\n".join(cart_titles), "price": total_price, "id": ids_str}
+        await update.message.reply_text(
+            f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", parse_mode="Markdown")
+        return NAME
+
+    elif args and args[0].startswith("buy_"):
         pid = int(args[0].replace("buy_", ""))
         p = get_product(pid)
         if not p:
-            await update.message.reply_text("Товар не найден 😔 Возможно, он уже продан.")
+            await update.message.reply_text("Товар не найден 😔")
             return ConversationHandler.END
         ctx.user_data["product"] = dict(p)
         await update.message.reply_text(
-            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\n"
-            "Как вас зовут?", parse_mode="Markdown")
+            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", parse_mode="Markdown")
         return NAME
-    await update.message.reply_text(
-        "Добро пожаловать в *EUPHORIC* ✨\n\n"
-        "Здесь можно заказать сумки, шкатулки и ёлочные игрушки ручной работы.\n\n"
-        "Выберите товар на сайте и нажмите «Купить».",
-        parse_mode="Markdown")
+        
+    await update.message.reply_text("Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", parse_mode="Markdown")
     return ConversationHandler.END
 
 async def get_name(update, ctx):
