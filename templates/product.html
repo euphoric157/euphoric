@@ -9,9 +9,7 @@
     :root { --bg: {{ site_settings.bg_color }}; --accent: {{ site_settings.accent_color }}; }
     body { background-color: var(--bg) !important; }
     .color-box { display: inline-block; padding: 8px 16px; border: 1px solid var(--accent); color: #fff; margin-bottom: 20px; font-size: 0.9rem; }
-    @media (max-width: 768px) {
-        .product-gallery img { height: 300px !important; }
-    }
+    @media (max-width: 768px) { .product-gallery img { height: 300px !important; } }
 </style>
 </head>
 <body>
@@ -41,7 +39,14 @@
   </div>
 </main>
 <script>
-// Скрипт корзины
+function addToCart(id, title, price) {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    if (!cart.find(item => item.id === id)) {
+        cart.push({ id: id, title: title, price: price });
+        localStorage.setItem('euphoric_cart', JSON.stringify(cart));
+        alert('Товар добавлен в корзину!');
+    } else alert('Этот товар уже в корзине');
+}
 </script>
 </body>
 </html>
