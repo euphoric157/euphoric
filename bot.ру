@@ -6,10 +6,12 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = os.environ.get("BOT_TOKEN", "9021976633:AAHCa3ZGNbb0RBPWkgV40IS-UeB70DpNFrU")
+# Токен и ID лучше брать из переменных Railway, но если их нет — используются значения ниже
+TOKEN = os.environ.get("BOT_TOKEN", "ВСТАВЬ_СЮДА_ТОКЕН")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 
-NAME, PHONE, ADDRESS = range(3)
+# Состояния диалога
+NAME, PHONE, ADDRESS, CUSTOM_TEXT = range(4)
 
 def get_product(pid):
     if not os.path.exists("database.db"): return None
@@ -21,7 +23,14 @@ def get_product(pid):
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = ctx.args
-    if args and args[0].startswith("buy_cart_"):
+    if args and args[0] == "custom_order":
+        await update.message.reply_text(
+            "✨ Вы хотите сделать индивидуальный заказ или у вас есть вопрос?\n\n"
+            "Напишите, пожалуйста, что именно вы хотели бы заказать (или ваш вопрос), и мы свяжемся с вами! 👇"
+        )
+        return CUSTOM_TEXT
+
+    elif args and args[0].startswith("buy_cart_"):
         items_str = args[0].replace("buy_cart_", "")
         items = items_str.split(",")
         
@@ -68,11 +77,19 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             return ConversationHandler.END
         
     await update.message.reply_text(
-        "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте.", 
+        "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте или нажмите 'Сделать заказ'.", 
         parse_mode="Markdown"
     )
     return ConversationHandler.END
 
+# --- Обработка свободного заказа ---
+async def get_custom_text(update, ctx):
+    ctx.user_data["custom_order"] = update.message.text
+    
+    await update.message.reply_text("Как вас зовут?")
+    return NAME
+
+# --- Сбор данных для обычного заказа ---
 async def get_name(update, ctx):
     ctx.user_data["name"] = update.message.text
     await update.message.reply_text("Ваш телефон для связи?")
@@ -86,24 +103,31 @@ async def get_phone(update, ctx):
 async def get_address(update, ctx):
     ctx.user_data["address"] = update.message.text
     d = ctx.user_data
-    p = d["product"]
     
-    try:
-        conn = sqlite3.connect("database.db")
-        ids = str(p['id']).split(',')
-        for pid in ids:
-            if pid.strip().isdigit():
-                conn.execute("UPDATE products SET sales = sales + 1 WHERE id=?", (int(pid),))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print("Ошибка при обновлении счетчика продаж:", e)
+    # Проверяем, это свободный заказ или из корзины/товара
+    if "custom_order" in d:
+        order = (f"✉️ *СВОБОДНЫЙ ЗАКАЗ*\n\n"
+                 f"Запрос: {d['custom_order']}\n\n"
+                 f"Имя: {d['name']}\nТелефон: {d['phone']}\nАдрес: {d['address']}\n"
+                 f"Username: @{update.effective_user.username or '—'}")
+    else:
+        p = d["product"]
+        try:
+            conn = sqlite3.connect("database.db")
+            ids = str(p['id']).split(',')
+            for pid in ids:
+                if pid.strip().isdigit():
+                    conn.execute("UPDATE products SET sales = sales + 1 WHERE id=?", (int(pid),))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print("Ошибка при обновлении счетчика продаж:", e)
 
-    order = (f"🆕 *НОВЫЙ ЗАКАЗ*\n\n"
-             f"Товар: {p['title']} (ID {p['id']})\n"
-             f"Цена: {p['price']} ₽\n\n"
-             f"Имя: {d['name']}\nТелефон: {d['phone']}\nАдрес: {d['address']}\n"
-             f"Username: @{update.effective_user.username or '—'}")
+        order = (f"🆕 *НОВЫЙ ЗАКАЗ*\n\n"
+                 f"Товар: {p['title']} (ID {p['id']})\n"
+                 f"Цена: {p['price']} ₽\n\n"
+                 f"Имя: {d['name']}\nТелефон: {d['phone']}\nАдрес: {d['address']}\n"
+                 f"Username: @{update.effective_user.username or '—'}")
              
     await ctx.bot.send_message(ADMIN_CHAT_ID, order, parse_mode="Markdown")
     await update.message.reply_text("Спасибо! Заказ принят ✅\nМы свяжемся с вами в ближайшее время.")
@@ -114,14 +138,19 @@ async def cancel(update, ctx):
     return ConversationHandler.END
 
 app = ApplicationBuilder().token(TOKEN).build()
+
 conv = ConversationHandler(
-    entry_points=[CommandHandler("start", start)],
+    entry_points=[
+        CommandHandler("start", start),
+    ],
     states={
         NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
         PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
         ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_address)],
+        CUSTOM_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_custom_text)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
+
 app.add_handler(conv)
 app.run_polling()
