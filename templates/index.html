@@ -10,16 +10,32 @@
 <style>
     :root { --bg: {{ site_settings.bg_color }}; --accent: {{ site_settings.accent_color }}; }
     body { background-color: var(--bg) !important; display: flex; flex-direction: column; min-height: 100vh; }
+    
     .hero { background-image: url('/static/uploads/{{ site_settings.banner_image }}'); background-size: cover; background-position: center; padding: 120px 20px; position: relative; }
     .hero::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,10,0.6); }
     .hero h2, .hero p { position: relative; z-index: 2; }
+    
     .acc-menu { display: none; background: #111; padding: 20px; border: 1px solid #333; margin-bottom: 30px; text-align: center; }
     .acc-menu a { color: #ccc; text-decoration: none; margin: 0 15px; font-size: 0.9rem; display: inline-block; margin-bottom: 10px; }
     .acc-menu a:hover { color: var(--accent); }
     
-    /* Красный цвет для Новинок и Популярных */
     .btn-red { color: #e74c3c !important; border-color: #e74c3c !important; }
     .btn-red:hover { background: #e74c3c !important; color: #fff !important; }
+
+    /* Новый красивый поиск */
+    .search-bar { max-width: 600px; margin: 0 auto 30px; padding: 0 20px; }
+    .search-bar input {
+        width: 100%; padding: 16px 20px; background: transparent;
+        border: 1px solid var(--accent); border-radius: 4px; color: #fff;
+        font-family: 'Montserrat', sans-serif; font-size: 0.95rem; outline: none;
+        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .search-bar input::placeholder {
+        color: #888; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem;
+    }
+    .search-bar input:focus {
+        background: rgba(201, 169, 110, 0.05); box-shadow: 0 0 15px rgba(201, 169, 110, 0.3);
+    }
 
     /* Подвал (Футер) */
     footer { margin-top: auto; background: #050505; border-top: 1px solid #222; padding: 50px 20px 30px; text-align: center; }
@@ -63,7 +79,9 @@
     <p>Сумки · Шкатулки · Топы · Игрушки 🎄</p>
 </section>
 
-<div class="search-bar"><input type="text" id="search-input" placeholder="Поиск..." onkeyup="searchProducts()"></div>
+<div class="search-bar">
+    <input type="text" id="search-input" placeholder="Что вы ищете?" onkeyup="searchProducts()">
+</div>
 
 <section class="filters">
   <button onclick="filter('all', event)" class="active">Все</button>
@@ -116,10 +134,11 @@
     <p>© 2025 EUPHORIC. Все права защищены.</p>
 </footer>
 
+<!-- Модалка корзины -->
 <div id="cart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center;">
     <div style="background:#111; border: 1px solid var(--accent); padding: 30px; max-width: 500px; width: 90%; position: relative;">
         <span onclick="closeCart()" style="position:absolute; top:15px; right:20px; color:var(--accent); font-size:24px; cursor:pointer;">×</span>
-        <h2 style="color:#e8dcc8; margin-bottom:20px;">Ваша корзина</h2>
+        <h2 style="color:#e8dcc8; margin-bottom:20px; font-family:'Cormorant Garamond', serif;">Ваша корзина</h2>
         <div id="cart-items" style="margin-bottom: 30px; color: #ccc; max-height: 300px; overflow-y: auto;"></div>
         <button class="buy" style="width:100%;" onclick="checkout()">Оформить заказ</button>
     </div>
@@ -127,7 +146,6 @@
 
 <script>
 function makeCustomOrder() {
-    // Открывает бота со специальным параметром custom_order
     window.open('https://t.me/{{ bot }}?start=custom_order', '_blank');
 }
 
@@ -228,10 +246,7 @@ function closeCart() { document.getElementById('cart-modal').style.display = 'no
 function checkout() {
     let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
     if (cart.length === 0) { alert('Корзина пуста!'); return; }
-    
-    // Передаем только ID товаров через запятую (например: 1,2,3)
     let ids = cart.map(item => item.id).join(',');
-    
     localStorage.removeItem('euphoric_cart');
     window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
     closeCart();
