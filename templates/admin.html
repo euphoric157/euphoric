@@ -1,71 +1,99 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Админка — EUPHORIC</title>
-<link rel="stylesheet" href="/static/style.css"></head><body>
-<header><h1>Админка EUPHORIC</h1><a href="/admin/logout" style="color:#b5651d;font-weight:600;">Выйти</a></header>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+    .admin-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+    .admin-block { background: #111; border: 1px solid #333; padding: 30px; margin-bottom: 30px; }
+    .admin-block h2 { color: #c9a96e; margin-bottom: 20px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; }
+    .admin-input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0a0a0a; border: 1px solid #333; color: #fff; font-family: 'Montserrat', sans-serif; }
+    .admin-row { border-bottom: 1px solid #333; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .btn-danger { background: #e74c3c; color: #fff; border: none; padding: 8px 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+    <h1>Админка EUPHORIC</h1>
+    <nav>
+        <a href="/" target="_blank">Открыть сайт</a>
+        <a href="/admin/logout">Выйти</a>
+    </nav>
+</header>
 
-<div style="max-width:1000px;margin:0 auto;padding:24px;">
+<div class="admin-container">
 
-<section style="background:#fff;border-radius:16px;padding:24px;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
-  <h2 style="margin-bottom:16px;">➕ Добавить товар</h2>
-  <form action="/admin/product/add" method="post" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:10px;">
-    <select name="category" required style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-      <option value="bags">Сумки</option>
-      <option value="boxes">Шкатулки</option>
-      <option value="toys">Новогодние игрушки</option>
-    </select>
-    <input name="title" placeholder="Название" required style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-    <textarea name="description" placeholder="Описание" rows="3" style="padding:10px;border:1px solid #ddd;border-radius:8px;"></textarea>
-    <input name="price" type="number" placeholder="Цена, ₽" required style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-    <input name="image" type="file" accept="image/*">
-    <button class="buy" style="border:none;cursor:pointer;">Добавить</button>
-  </form>
-</section>
-
-<section style="background:#fff;border-radius:16px;padding:24px;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
-  <h2 style="margin-bottom:16px;">📦 Товары ({{ products|length }})</h2>
-  {% for p in products %}
-  <div style="border-bottom:1px solid #eee;padding:16px 0;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-    <div style="flex:1;min-width:250px;">
-      <form action="/admin/product/{{ p['id'] }}/edit" method="post" style="display:flex;flex-direction:column;gap:8px;">
-        <select name="category" style="padding:8px;border:1px solid #ddd;border-radius:6px;">
-          <option value="bags" {% if p['category']=='bags' %}selected{% endif %}>Сумки</option>
-          <option value="boxes" {% if p['category']=='boxes' %}selected{% endif %}>Шкатулки</option>
-          <option value="toys" {% if p['category']=='toys' %}selected{% endif %}>Игрушки</option>
-        </select>
-        <input name="title" value="{{ p['title'] }}" style="padding:8px;border:1px solid #ddd;border-radius:6px;">
-        <textarea name="description" rows="2" style="padding:8px;border:1px solid #ddd;border-radius:6px;">{{ p['description'] }}</textarea>
-        <input name="price" type="number" value="{{ p['price'] }}" style="padding:8px;border:1px solid #ddd;border-radius:6px;">
-        <button class="buy" style="border:none;cursor:pointer;font-size:.9rem;padding:8px;">Сохранить</button>
-      </form>
+    <!-- НАСТРОЙКИ САЙТА -->
+    <div class="admin-block">
+        <h2>⚙️ Настройки сайта (Баннер и тексты)</h2>
+        <form action="/admin/settings/save" method="POST" enctype="multipart/form-data">
+            <input type="text" name="site_title" value="{{ title }}" placeholder="Заголовок на главной" class="admin-input">
+            <input type="text" name="site_desc" value="{{ desc }}" placeholder="Подзаголовок на главной" class="admin-input">
+            <p style="color:#888; font-size:0.9rem; margin-bottom:10px;">Загрузить фон (баннер) — оставьте пустым, чтобы не менять:</p>
+            <input type="file" name="site_bg" accept="image/*" style="margin-bottom:20px;">
+            <button class="buy" style="width:100%;">Сохранить настройки</button>
+        </form>
     </div>
-    <form action="/admin/product/{{ p['id'] }}/delete" method="post" onsubmit="return confirm('Удалить?')">
-      <button style="background:#e74c3c;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Удалить</button>
-    </form>
-  <section style="background:#111; border: 1px solid #333; border-radius:16px; padding:24px; margin-top: 24px;">
-  <h2 style="margin-bottom:16px; color:#e8dcc8; font-family:'Cormorant Garamond', serif;">⭐ Отзывы</h2>
-  {% for r in reviews %}
-  <div style="border-top:1px solid #333;padding:12px 0;display:flex;justify-content:space-between;align-items:center;">
-    <div>
-        <b style="color:#c9a96e;">{{ r['name'] }}</b> ({{ r['rating'] }} ★)<br>
-        <span style="color:#888; font-size:0.9rem;">{{ r['text'][:50] }}...</span>
-    </div>
-    <form action="/admin/review/{{ r['id'] }}/delete" method="post">
-      <button style="background:#e74c3c;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Удалить</button>
-    </form>
-  </div>
-  {% else %}
-  <p style="color:#888;">Отзывов пока нет.</p>
-  {% endfor %}
-</section>
-  </div>
-  {% else %}
-  <p style="color:#888;">Товаров пока нет.</p>
-  {% endfor %}
-</section>
 
-<section style="background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
-  <h2 style="margin-bottom:16px;">🎓 Мастер-классы</h2>
-  <form action="/admin/workshop/add" method="post" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-    <input name="title" placeholder="Название" required style="padding:10px;border:1px solid #ddd;border-radius:8px;">
-    <textarea name="description" placeholder="Описание" rows="2" style="padding:10px;border:1px solid #ddd;border-radius:8px;"></textarea>
+    <!-- ДОБАВЛЕНИЕ ТОВАРА -->
+    <div class="admin-block">
+        <h2>➕ Добавить товар</h2>
+        <form action="/admin/product/add" method="POST" enctype="multipart/form-data">
+            <select name="category" required class="admin-input">
+                <option value="bags">Сумки</option>
+                <option value="boxes">Шкатулки</option>
+                <option value="tops">Топы</option>
+                <option value="toys">Новогодние игрушки</option>
+            </select>
+            <input type="text" name="title" placeholder="Название" required class="admin-input">
+            <textarea name="description" placeholder="Описание" class="admin-input" rows="3"></textarea>
+            <input type="number" name="price" placeholder="Цена, ₽" required class="admin-input">
+            <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Главное фото:</p>
+            <input type="file" name="image" accept="image/*" style="margin-bottom:15px;">
+            <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Дополнительные фото (можно несколько):</p>
+            <input type="file" name="extra_images" accept="image/*" multiple style="margin-bottom:20px;">
+            <button class="buy" style="width:100%;">Добавить товар</button>
+        </form>
+    </div>
+
+    <!-- СПИСОК ТОВАРОВ -->
+    <div class="admin-block">
+        <h2>📦 Товары</h2>
+        {% for p in products %}
+        <div class="admin-row">
+            <div><b style="color:#c9a96e;">{{ p['title'] }}</b> ({{ p['price'] }} ₽)</div>
+            <div style="display:flex; gap:10px;">
+                <form action="/admin/product/{{ p['id'] }}/delete" method="POST">
+                    <button class="btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- МАСТЕР-КЛАССЫ -->
+    <div class="admin-block">
+        <h2>🎓 Мастер-классы</h2>
+        <form action="/admin/workshop/add" method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Название" required class="admin-input">
+            <textarea name="description" placeholder="Описание" class="admin-input"></textarea>
+            <input type="text" name="video_url" placeholder="Ссылка на видео (YouTube/Telegram/Rutube)" class="admin-input">
+            <input type="file" name="image" accept="image/*" style="margin-bottom:20px;">
+            <button class="buy" style="width:100%;">Добавить мастер-класс</button>
+        </form>
+        
+        {% for w in workshops %}
+        <div class="admin-row">
+            <div><b style="color:#c9a96e;">{{ w['title'] }}</b></div>
+            <form action="/admin/workshop/{{ w['id'] }}/delete" method="POST">
+                <button class="btn-danger">Удалить</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</body>
+</html>
