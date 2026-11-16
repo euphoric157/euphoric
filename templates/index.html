@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/style.css">
 <style>
     :root { --bg: {{ site_settings.bg_color }}; --accent: {{ site_settings.accent_color }}; }
-    body { background-color: var(--bg) !important; }
+    body { background-color: var(--bg) !important; display: flex; flex-direction: column; min-height: 100vh; }
     .hero { background-image: url('/static/uploads/{{ site_settings.banner_image }}'); background-size: cover; background-position: center; padding: 120px 20px; position: relative; }
     .hero::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,10,0.6); }
     .hero h2, .hero p { position: relative; z-index: 2; }
@@ -17,6 +17,18 @@
     .acc-menu a { color: #ccc; text-decoration: none; margin: 0 15px; font-size: 0.9rem; display: inline-block; margin-bottom: 10px; }
     .acc-menu a:hover { color: var(--accent); }
     
+    /* Красный цвет для Новинок и Популярных */
+    .btn-red { color: #e74c3c !important; border-color: #e74c3c !important; }
+    .btn-red:hover { background: #e74c3c !important; color: #fff !important; }
+
+    /* Подвал (Футер) */
+    footer { margin-top: auto; background: #050505; border-top: 1px solid #222; padding: 50px 20px 30px; text-align: center; }
+    footer h3 { color: var(--accent); font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 20px; letter-spacing: 2px;}
+    .social-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
+    .social-links a { color: #ccc; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; border: 1px solid #333; padding: 10px 20px; border-radius: 30px; }
+    .social-links a:hover { color: #fff; border-color: var(--accent); background: rgba(201, 169, 110, 0.1); }
+    footer p { color: #555; font-size: 0.8rem; margin-top: 20px; }
+
     @media (max-width: 768px) {
         .products { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; padding: 0 10px 40px !important; }
         .card .img { height: 180px !important; }
@@ -28,6 +40,7 @@
         .filters button { font-size: 0.7rem !important; padding: 8px 12px !important; }
         nav a { font-size: 0.7rem !important; margin: 5px !important; }
         header { flex-direction: column; padding: 15px !important; }
+        .social-links a { font-size: 0.7rem; padding: 8px 15px; }
     }
 </style>
 </head>
@@ -40,6 +53,7 @@
         <a href="#" onclick="showFavorites()" style="color:#e74c3c;">Избранное (♥)</a>
         <a href="/reviews">Отзывы</a>
         <a href="/workshops">Мастер-классы</a>
+        <a href="#" onclick="makeCustomOrder()" style="color: var(--accent); font-weight: bold;">Сделать заказ</a>
         <a href="#" onclick="openCart()" style="color: var(--accent);">Корзина (<span id="cart-count">0</span>)</a>
     </nav>
 </header>
@@ -58,8 +72,8 @@
   <button onclick="filter('tops', event)">Топы</button>
   <button onclick="toggleAccMenu()" style="border-color:var(--accent); color:var(--accent);">Другие аксессуары ▾</button>
   <button onclick="filter('toys', event)">Новогодние игрушки 🎄</button>
-  <button onclick="filter('new', event)" style="color:var(--accent);">🔥 Новинки</button>
-  <button onclick="filter('popular', event)" style="color:var(--accent);">⭐ Популярные</button>
+  <button onclick="filter('new', event)" class="btn-red">🔥 Новинки</button>
+  <button onclick="filter('popular', event)" class="btn-red">⭐ Популярные</button>
 </section>
 
 <!-- Выпадающий список аксессуаров -->
@@ -90,6 +104,18 @@
 {% endfor %}
 </section>
 
+<!-- ПОДВАЛ С СЕТЯМИ -->
+<footer>
+    <h3>EUPHORIC</h3>
+    <div class="social-links">
+        <a href="https://www.instagram.com/euphoric_bags?psln=cXgzZDZjeGcxbmxn" target="_blank">Инстаграм</a>
+        <a href="https://vk.ru/zlatoreva_euphoric" target="_blank">ВКонтакте</a>
+        <a href="https://vk.ru/euphoric_bags" target="_blank">Сообщество ВК</a>
+        <a href="https://www.tiktok.com/@euphoric_bags" target="_blank">ТикТок</a>
+    </div>
+    <p>© 2025 EUPHORIC. Все права защищены.</p>
+</footer>
+
 <div id="cart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center;">
     <div style="background:#111; border: 1px solid var(--accent); padding: 30px; max-width: 500px; width: 90%; position: relative;">
         <span onclick="closeCart()" style="position:absolute; top:15px; right:20px; color:var(--accent); font-size:24px; cursor:pointer;">×</span>
@@ -100,6 +126,11 @@
 </div>
 
 <script>
+function makeCustomOrder() {
+    // Открывает бота со специальным параметром custom_order
+    window.open('https://t.me/{{ bot }}?start=custom_order', '_blank');
+}
+
 function toggleAccMenu() {
     let menu = document.getElementById('acc-menu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
