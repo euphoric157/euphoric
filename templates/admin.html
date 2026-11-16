@@ -36,13 +36,20 @@
       <option value="bags">Сумки</option>
       <option value="boxes">Шкатулки</option>
       <option value="tops">Топы</option>
-      <option value="accessories">Другие аксессуары (шалстуки, катхолдер и т.д.)</option>
-      <option value="toys">Новогодние игрушки</option>
+      <option value="shalstuki">Шалстуки (Аксессуары)</option>
+      <option value="partupei">Партупеи (Аксессуары)</option>
+      <option value="sumka-chehol">Сумка-чехол (Аксессуары)</option>
+      <option value="vorotnik">Воротник (Аксессуары)</option>
+      <option value="podsvetchnik">Подсвечник (Аксессуары)</option>
+      <option value="korzina">Корзина (Аксессуары)</option>
+      <option value="katholder">Катхолдер (Аксессуары)</option>
+      <option value="obvesy">Обвесы (Аксессуары)</option>
+      <option value="toys">Новогодние игрушки 🎄</option>
     </select>
     <input name="title" placeholder="Название" required>
     <textarea name="description" placeholder="Описание" rows="3"></textarea>
     <input name="price" type="number" placeholder="Цена, ₽" required>
-    <input name="color" placeholder="Цвет изделия (например: Черный, Бежевый)">
+    <input name="color" placeholder="Цвет изделия">
     <label style="color:#888;">Фотографии (можно несколько):</label>
     <input name="images" type="file" accept="image/*" multiple>
     <button type="submit">Добавить товар</button>
@@ -59,8 +66,15 @@
           <option value="bags" {% if p['category']=='bags' %}selected{% endif %}>Сумки</option>
           <option value="boxes" {% if p['category']=='boxes' %}selected{% endif %}>Шкатулки</option>
           <option value="tops" {% if p['category']=='tops' %}selected{% endif %}>Топы</option>
-          <option value="accessories" {% if p['category']=='accessories' %}selected{% endif %}>Другие аксессуары</option>
-          <option value="toys" {% if p['category']=='toys' %}selected{% endif %}>Новогодние игрушки</option>
+          <option value="shalstuki" {% if p['category']=='shalstuki' %}selected{% endif %}>Шалстуки</option>
+          <option value="partupei" {% if p['category']=='partupei' %}selected{% endif %}>Партупеи</option>
+          <option value="sumka-chehol" {% if p['category']=='sumka-chehol' %}selected{% endif %}>Сумка-чехол</option>
+          <option value="vorotnik" {% if p['category']=='vorotnik' %}selected{% endif %}>Воротник</option>
+          <option value="podsvetchnik" {% if p['category']=='podsvetchnik' %}selected{% endif %}>Подсвечник</option>
+          <option value="korzina" {% if p['category']=='korzina' %}selected{% endif %}>Корзина</option>
+          <option value="katholder" {% if p['category']=='katholder' %}selected{% endif %}>Катхолдер</option>
+          <option value="obvesy" {% if p['category']=='obvesy' %}selected{% endif %}>Обвесы</option>
+          <option value="toys" {% if p['category']=='toys' %}selected{% endif %}>Игрушки</option>
         </select>
         <input name="title" value="{{ p['title'] }}">
         <textarea name="description" rows="2">{{ p['description'] }}</textarea>
@@ -72,29 +86,6 @@
     <form action="/admin/product/{{ p['id'] }}/delete" method="post" onsubmit="return confirm('Удалить?')">
       <button class="danger" style="padding: 10px; width: auto;">Удалить</button>
     </form>
-  </div>
-  {% endfor %}
-</section>
-
-<!-- Мастер-классы и Отзывы (блоки оставляем как были) -->
-<section class="admin-block">
-  <h2>🎓 Мастер-классы</h2>
-  <form action="/admin/workshop/add" method="post" enctype="multipart/form-data" class="admin-form">
-    <input name="title" placeholder="Название" required>
-    <textarea name="description" placeholder="Описание" rows="2"></textarea>
-    <input name="link" placeholder="Ссылка на материал">
-    <input name="video" placeholder="Ссылка на видео (YouTube)">
-    <input name="image" type="file" accept="image/*">
-    <button type="submit">Добавить</button>
-  </form>
-</section>
-
-<section class="admin-block">
-  <h2>⭐ Отзывы</h2>
-  {% for r in reviews %}
-  <div class="admin-row" style="justify-content: space-between; align-items: center;">
-    <div><b style="color:#c9a96e;">{{ r['name'] }}</b> ({{ r['rating'] }} ★)<br><span style="color:#888;">{{ r['text'][:50] }}...</span></div>
-    <form action="/admin/review/{{ r['id'] }}/delete" method="post"><button class="danger" style="padding: 6px 14px; width:auto;">Удалить</button></form>
   </div>
   {% endfor %}
 </section>
