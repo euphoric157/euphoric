@@ -13,13 +13,15 @@
     .hero { background-image: url('/static/uploads/{{ site_settings.banner_image }}'); background-size: cover; background-position: center; padding: 120px 20px; position: relative; }
     .hero::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,10,0.6); }
     .hero h2, .hero p { position: relative; z-index: 2; }
+    .acc-menu { display: none; background: #111; padding: 20px; border: 1px solid #333; margin-bottom: 30px; text-align: center; }
+    .acc-menu a { color: #ccc; text-decoration: none; margin: 0 15px; font-size: 0.9rem; display: inline-block; margin-bottom: 10px; }
+    .acc-menu a:hover { color: var(--accent); }
     
-    /* Стили для мобильной версии: 2 товара в ряд */
     @media (max-width: 768px) {
         .products { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; padding: 0 10px 40px !important; }
         .card .img { height: 180px !important; }
-        .card h3 { font-size: 1rem !important; padding: 10px 5px 0 !important; }
-        .card .price { font-size: 1rem !important; padding: 0 5px 10px !important; }
+        .card h3 { font-size: 0.9rem !important; padding: 10px 5px 0 !important; }
+        .card .price { font-size: 0.9rem !important; padding: 0 5px 10px !important; }
         .card .buy { font-size: 0.6rem !important; padding: 8px !important; }
         .hero { padding: 80px 15px !important; }
         .hero h2 { font-size: 2rem !important; }
@@ -54,11 +56,23 @@
   <button onclick="filter('bags', event)">Сумки</button>
   <button onclick="filter('boxes', event)">Шкатулки</button>
   <button onclick="filter('tops', event)">Топы</button>
-  <button onclick="filter('accessories', event)">Другие аксессуары</button>
+  <button onclick="toggleAccMenu()" style="border-color:var(--accent); color:var(--accent);">Другие аксессуары ▾</button>
   <button onclick="filter('toys', event)">Новогодние игрушки 🎄</button>
   <button onclick="filter('new', event)" style="color:var(--accent);">🔥 Новинки</button>
   <button onclick="filter('popular', event)" style="color:var(--accent);">⭐ Популярные</button>
 </section>
+
+<!-- Выпадающий список аксессуаров -->
+<div id="acc-menu" class="acc-menu">
+    <a href="#" onclick="filter('shalstuki', event)">Шалстуки</a>
+    <a href="#" onclick="filter('partupei', event)">Партупеи</a>
+    <a href="#" onclick="filter('sumka-chehol', event)">Сумка-чехол</a>
+    <a href="#" onclick="filter('vorotnik', event)">Воротник</a>
+    <a href="#" onclick="filter('podsvetchnik', event)">Подсвечник</a>
+    <a href="#" onclick="filter('korzina', event)">Корзина</a>
+    <a href="#" onclick="filter('katholder', event)">Катхолдер</a>
+    <a href="#" onclick="filter('obvesy', event)">Обвесы</a>
+</div>
 
 <section class="products" id="products-grid">
 {% for p in products %}
@@ -76,7 +90,6 @@
 {% endfor %}
 </section>
 
-<!-- Модалка корзины (оставь как было) -->
 <div id="cart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center;">
     <div style="background:#111; border: 1px solid var(--accent); padding: 30px; max-width: 500px; width: 90%; position: relative;">
         <span onclick="closeCart()" style="position:absolute; top:15px; right:20px; color:var(--accent); font-size:24px; cursor:pointer;">×</span>
@@ -87,7 +100,109 @@
 </div>
 
 <script>
-// ВСТАВЬ СЮДА СКРИПТЫ (поиск, фильтры, корзина) ИЗ ПРЕДЫДУЩЕГО СООБЩЕНИЯ
+function toggleAccMenu() {
+    let menu = document.getElementById('acc-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function searchProducts() {
+    let query = document.getElementById('search-input').value.toLowerCase();
+    document.querySelectorAll('.card').forEach(c => {
+        c.style.display = c.getAttribute('data-title').includes(query) ? '' : 'none';
+    });
+}
+
+function filter(cat, e){
+  if(e) e.preventDefault();
+  document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
+  if(e && e.target.tagName === 'BUTTON') e.target.classList.add('active');
+  
+  let container = document.getElementById('products-grid');
+  let cards = Array.from(container.querySelectorAll('.card'));
+
+  if(cat === 'new') cards.sort((a, b) => b.getAttribute('data-id') - a.getAttribute('data-id'));
+  else if(cat === 'popular') cards.sort((a, b) => b.getAttribute('data-sales') - a.getAttribute('data-sales'));
+
+  cards.forEach(c => {
+      if (cat === 'all' || cat === 'new' || cat === 'popular') c.style.display = '';
+      else c.style.display = (c.dataset.cat === cat) ? '' : 'none';
+      container.appendChild(c);
+  });
+  document.getElementById('acc-menu').style.display = 'none';
+}
+
+function updateFavIcons() {
+    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
+    document.querySelectorAll('.fav-icon').forEach(icon => {
+        let match = icon.getAttribute('onclick').match(/\d+/);
+        if (match) {
+            let id = parseInt(match[0]);
+            if (favs.includes(id)) icon.classList.add('active');
+            else icon.classList.remove('active');
+        }
+    });
+}
+updateFavIcons();
+
+function toggleFav(event, id) {
+    event.preventDefault();
+    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
+    if (favs.includes(id)) favs = favs.filter(f => f !== id);
+    else favs.push(id);
+    localStorage.setItem('euphoric_favs', JSON.stringify(favs));
+    updateFavIcons();
+}
+
+function showFavorites() {
+    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
+    document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.card').forEach(c => {
+        let id = parseInt(c.getAttribute('data-id'));
+        c.style.display = favs.includes(id) ? '' : 'none';
+    });
+}
+
+function updateCartCount() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    let el = document.getElementById('cart-count');
+    if(el) el.innerText = cart.length;
+}
+updateCartCount();
+
+function addToCart(id, title, price) {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    if (!cart.find(item => item.id === id)) {
+        cart.push({ id: id, title: title, price: price });
+        localStorage.setItem('euphoric_cart', JSON.stringify(cart));
+        updateCartCount();
+        alert('Товар добавлен в корзину!');
+    } else alert('Этот товар уже в корзине');
+}
+
+function openCart() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    let container = document.getElementById('cart-items');
+    container.innerHTML = '';
+    if (cart.length === 0) container.innerHTML = '<p style="color:#888;">Ваша корзина пуста.</p>';
+    else {
+        cart.forEach(item => {
+            container.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;"><span>${item.title}</span><span style="color:var(--accent);">${item.price} ₽</span></div>`;
+        });
+    }
+    document.getElementById('cart-modal').style.display = 'flex';
+}
+
+function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
+
+function checkout() {
+    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
+    if (cart.length === 0) { alert('Корзина пуста!'); return; }
+    let items = cart.map(item => `${item.id}_${encodeURIComponent(item.title)}_${item.price}`).join(',');
+    localStorage.removeItem('euphoric_cart');
+    window.open('https://t.me/{{ bot }}?start=buy_cart_' + items, '_blank');
+    closeCart();
+    updateCartCount();
+}
 </script>
 </body>
 </html>
