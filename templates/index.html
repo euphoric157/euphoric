@@ -228,9 +228,12 @@ function closeCart() { document.getElementById('cart-modal').style.display = 'no
 function checkout() {
     let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
     if (cart.length === 0) { alert('Корзина пуста!'); return; }
-    let items = cart.map(item => `${item.id}_${encodeURIComponent(item.title)}_${item.price}`).join(',');
+    
+    // Передаем только ID товаров через запятую (например: 1,2,3)
+    let ids = cart.map(item => item.id).join(',');
+    
     localStorage.removeItem('euphoric_cart');
-    window.open('https://t.me/{{ bot }}?start=buy_cart_' + items, '_blank');
+    window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
     closeCart();
     updateCartCount();
 }
