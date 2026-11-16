@@ -6,11 +6,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# Токен и ID лучше брать из переменных Railway, но если их нет — используются значения ниже
 TOKEN = os.environ.get("BOT_TOKEN", "9021976633:AAHCa3ZGNbb0RBPWkgV40IS-UeB70DpNFrU")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 
-# Состояния диалога
 NAME, PHONE, ADDRESS, CUSTOM_TEXT = range(4)
 
 def get_product(pid):
@@ -31,28 +29,26 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return CUSTOM_TEXT
 
     elif args and args[0].startswith("buy_cart_"):
-        items_str = args[0].replace("buy_cart_", "")
-        items = items_str.split(",")
+        ids_str = args[0].replace("buy_cart_", "")
+        ids = [int(i) for i in ids_str.split(",")]
         
         cart_titles = []
         total_price = 0
         
-        for item in items:
-            parts = item.split("_")
-            if len(parts) >= 3:
-                title = parts[1].replace("%20", " ")
-                price = int(parts[2])
-                cart_titles.append(f"• {title} ({price} ₽)")
-                total_price += price
+        for pid in ids:
+            p = get_product(pid)
+            if p:
+                cart_titles.append(f"• {p['title']} ({p['price']} ₽)")
+                total_price += p['price']
         
         if not cart_titles:
-            await update.message.reply_text("Ошибка корзины 😔")
+            await update.message.reply_text("Товары не найдены 😔")
             return ConversationHandler.END
             
         ctx.user_data["product"] = {
             "title": "Ваш заказ:\n" + "\n".join(cart_titles), 
             "price": total_price, 
-            "id": "cart"
+            "id": ids_str
         }
         await update.message.reply_text(
             f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", 
@@ -61,20 +57,19 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return NAME
 
     elif args and args[0].startswith("buy_"):
-        parts = args[0].replace("buy_", "").split("_")
-        if len(parts) >= 3:
-            title = parts[1].replace("%20", " ")
-            price = int(parts[2])
-            
-            ctx.user_data["product"] = {"title": title, "price": price, "id": parts[0]}
-            await update.message.reply_text(
-                f"🛍 *{title}*\n\n💰 Цена: {price} ₽\n\nКак вас зовут?", 
-                parse_mode="Markdown"
-            )
-            return NAME
-        else:
-            await update.message.reply_text("Ошибка данных товара 😔")
+        pid = int(args[0].replace("buy_", ""))
+        p = get_product(pid)
+        
+        if not p:
+            await update.message.reply_text("Товар не найден 😔")
             return ConversationHandler.END
+            
+        ctx.user_data["product"] = dict(p)
+        await update.message.reply_text(
+            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", 
+            parse_mode="Markdown"
+        )
+        return NAME
         
     await update.message.reply_text(
         "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте или нажмите 'Сделать заказ'.", 
@@ -82,14 +77,11 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
-# --- Обработка свободного заказа ---
 async def get_custom_text(update, ctx):
     ctx.user_data["custom_order"] = update.message.text
-    
     await update.message.reply_text("Как вас зовут?")
     return NAME
 
-# --- Сбор данных для обычного заказа ---
 async def get_name(update, ctx):
     ctx.user_data["name"] = update.message.text
     await update.message.reply_text("Ваш телефон для связи?")
@@ -104,7 +96,6 @@ async def get_address(update, ctx):
     ctx.user_data["address"] = update.message.text
     d = ctx.user_data
     
-    # Проверяем, это свободный заказ или из корзины/товара
     if "custom_order" in d:
         order = (f"✉️ *СВОБОДНЫЙ ЗАКАЗ*\n\n"
                  f"Запрос: {d['custom_order']}\n\n"
@@ -140,9 +131,7 @@ async def cancel(update, ctx):
 app = ApplicationBuilder().token(TOKEN).build()
 
 conv = ConversationHandler(
-    entry_points=[
-        CommandHandler("start", start),
-    ],
+    entry_points=[CommandHandler("start", start)],
     states={
         NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
         PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
