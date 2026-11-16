@@ -10,7 +10,7 @@ app.secret_key = "euphoric-secret-2025-change-me"
 ADMIN_PASSWORD = "euphoric2025"
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-BOT_USERNAME = "euphoricshop_bot"
+BOT_USERNAME = "EUPHORIC_shop_bot" # Замени на свой!
 
 def db():
     conn = sqlite3.connect("database.db")
@@ -19,8 +19,11 @@ def db():
 
 def init_db():
     conn = db()
-    # Добавили колонку sales (по умолчанию 0)
     conn.executescript("""
+    CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    );
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category TEXT NOT NULL,
@@ -28,6 +31,7 @@ def init_db():
         description TEXT,
         price INTEGER NOT NULL,
         image TEXT,
+        extra_images TEXT, 
         sales INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -35,7 +39,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,
-        link TEXT,
+        video_url TEXT,
         image TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -53,6 +57,12 @@ def init_db():
 
 init_db()
 
+def get_setting(key, default=""):
+    conn = db()
+    res = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+    conn.close()
+    return res['value'] if res else default
+
 def login_required(f):
     @wraps(f)
     def wrapper(*a, **kw):
@@ -61,13 +71,18 @@ def login_required(f):
         return f(*a, **kw)
     return wrapper
 
+# --- ВИТРИНА ---
 @app.route("/")
 def index():
     conn = db()
-    # Передаем все товары для главной страницы
     products = conn.execute("SELECT * FROM products ORDER BY id DESC").fetchall()
     conn.close()
-    return render_template("index.html", products=products, bot=BOT_USERNAME)
+    
+    site_bg = get_setting("site_bg", "")
+    site_title = get_setting("site_title", "Искусство в каждой детали")
+    site_desc = get_setting("site_desc", "Сумки · Шкатулки · Топы · Новогодние игрушки")
+    
+    return render_template("index.html", products=products, bot=BOT_USERNAME, bg=site_bg, title=site_title, desc=site_desc)
 
 @app.route("/product/<int:pid>")
 def product(pid):
@@ -127,7 +142,38 @@ def admin():
     ws = conn.execute("SELECT * FROM workshops ORDER BY id DESC").fetchall()
     revs = conn.execute("SELECT * FROM reviews ORDER BY id DESC").fetchall()
     conn.close()
-    return render_template("admin.html", products=products, workshops=ws, reviews=revs)
+    
+    site_bg = get_setting("site_bg", "")
+    site_title = get_setting("site_title", "Искусство в каждой детали")
+    site_desc = get_setting("site_desc", "Сумки · Шкатулки · Топы · Новогодние игрушки")
+    
+    return render_template("admin.html", products=products, workshops=ws, reviews=revs, bg=site_bg, title=site_title, desc=site_desc)
+
+@app.route("/admin/settings/save", methods=["POST"])
+@login_required
+def save_settings():
+    conn = db()
+    # Сохраняем тексты
+    for key in ["site_title", "site_desc"]:
+        val = request.form.get(key, "")
+        if conn.execute("SELECT 1 FROM settings WHERE key=?", (key,)).fetchone():
+            conn.execute("UPDATE settings SET value=? WHERE key=?", (val, key))
+        else:
+            conn.execute("INSERT INTO settings (key, value) VALUES (?,?)", (key, val))
+    
+    # Сохраняем баннер, если загрузили новый
+    f = request.files.get("site_bg")
+    if f and f.filename:
+        img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
+        f.save(os.path.join(UPLOAD_FOLDER, img))
+        if conn.execute("SELECT 1 FROM settings WHERE key='site_bg'").fetchone():
+            conn.execute("UPDATE settings SET value=? WHERE key='site_bg'", (img,))
+        else:
+            conn.execute("INSERT INTO settings (key, value) VALUES ('site_bg', ?)", (img,))
+            
+    conn.commit()
+    conn.close()
+    return redirect(url_for("admin"))
 
 @app.route("/admin/product/add", methods=["POST"])
 @login_required
@@ -137,10 +183,18 @@ def add_product():
     if f and f.filename:
         img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
         f.save(os.path.join(UPLOAD_FOLDER, img))
+        
+    extra_imgs = []
+    for f in request.files.getlist("extra_images"):
+        if f and f.filename:
+            ext = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
+            f.save(os.path.join(UPLOAD_FOLDER, ext))
+            extra_imgs.append(ext)
+            
     conn = db()
-    conn.execute("INSERT INTO products (category,title,description,price,image) VALUES (?,?,?,?,?)",
+    conn.execute("INSERT INTO products (category,title,description,price,image,extra_images) VALUES (?,?,?,?,?,?)",
                  (request.form["category"], request.form["title"],
-                  request.form["description"], int(request.form["price"]), img))
+                  request.form["description"], int(request.form["price"]), img, ",".join(extra_imgs)))
     conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
@@ -170,8 +224,8 @@ def add_workshop():
         img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
         f.save(os.path.join(UPLOAD_FOLDER, img))
     conn = db()
-    conn.execute("INSERT INTO workshops (title,description,link,image) VALUES (?,?,?,?)",
-                 (request.form["title"], request.form["description"], request.form["link"], img))
+    conn.execute("INSERT INTO workshops (title,description,video_url,image) VALUES (?,?,?,?)",
+                 (request.form["title"], request.form["description"], request.form["video_url"], img))
     conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
