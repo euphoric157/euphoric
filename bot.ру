@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = os.environ.get("BOT_TOKEN", "ВСТАВЬ_СЮДА_ТОКЕН")
+TOKEN = os.environ.get("BOT_TOKEN", "9021976633:AAHCa3ZGNbb0RBPWkgV40IS-UeB70DpNFrU")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 
 NAME, PHONE, ADDRESS, CUSTOM_TEXT = range(4)
