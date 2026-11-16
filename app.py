@@ -10,7 +10,7 @@ app.secret_key = "euphoric-secret-2025-change-me"
 ADMIN_PASSWORD = "euphoric2025"
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-BOT_USERNAME = "EUPHORIC_shop_bot" # Замени на свой!
+BOT_USERNAME = "EUPHORIC_shop_bot"
 
 def db():
     conn = sqlite3.connect("database.db")
@@ -20,18 +20,15 @@ def db():
 def init_db():
     conn = db()
     conn.executescript("""
-    CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY,
-        value TEXT
-    );
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category TEXT NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
         price INTEGER NOT NULL,
+        color TEXT,
         image TEXT,
-        extra_images TEXT, 
+        images TEXT,
         sales INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -39,8 +36,9 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,
-        video_url TEXT,
+        link TEXT,
         image TEXT,
+        video TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS reviews (
@@ -51,17 +49,27 @@ def init_db():
         image TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    );
     """)
+    defaults = {
+        "banner_image": "", "bg_color": "#0a0a0a", 
+        "accent_color": "#c9a96e", "site_title": "Искусство в каждой детали"
+    }
+    for k, v in defaults.items():
+        conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (k, v))
     conn.commit()
     conn.close()
 
 init_db()
 
-def get_setting(key, default=""):
+def get_settings():
     conn = db()
-    res = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+    rows = conn.execute("SELECT * FROM settings").fetchall()
     conn.close()
-    return res['value'] if res else default
+    return {r['key']: r['value'] for r in rows}
 
 def login_required(f):
     @wraps(f)
@@ -71,18 +79,16 @@ def login_required(f):
         return f(*a, **kw)
     return wrapper
 
-# --- ВИТРИНА ---
+@app.context_processor
+def inject_settings():
+    return dict(site_settings=get_settings())
+
 @app.route("/")
 def index():
     conn = db()
     products = conn.execute("SELECT * FROM products ORDER BY id DESC").fetchall()
     conn.close()
-    
-    site_bg = get_setting("site_bg", "")
-    site_title = get_setting("site_title", "Искусство в каждой детали")
-    site_desc = get_setting("site_desc", "Сумки · Шкатулки · Топы · Новогодние игрушки")
-    
-    return render_template("index.html", products=products, bot=BOT_USERNAME, bg=site_bg, title=site_title, desc=site_desc)
+    return render_template("index.html", products=products, bot=BOT_USERNAME)
 
 @app.route("/product/<int:pid>")
 def product(pid):
@@ -90,7 +96,8 @@ def product(pid):
     p = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
     conn.close()
     if not p: return "Товар не найден", 404
-    return render_template("product.html", p=p, bot=BOT_USERNAME)
+    images_list = p['images'].split(',') if p['images'] else [p['image']]
+    return render_template("product.html", p=p, images=images_list, bot=BOT_USERNAME)
 
 @app.route("/workshops")
 def workshops():
@@ -114,12 +121,10 @@ def reviews():
         conn.execute("INSERT INTO reviews (name, rating, text, image) VALUES (?,?,?,?)", (name, rating, text, img))
         conn.commit()
         return redirect(url_for("reviews"))
-    
     all_reviews = conn.execute("SELECT * FROM reviews ORDER BY id DESC").fetchall()
     conn.close()
     return render_template("reviews.html", reviews=all_reviews)
 
-# --- АДМИНКА ---
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -142,59 +147,39 @@ def admin():
     ws = conn.execute("SELECT * FROM workshops ORDER BY id DESC").fetchall()
     revs = conn.execute("SELECT * FROM reviews ORDER BY id DESC").fetchall()
     conn.close()
-    
-    site_bg = get_setting("site_bg", "")
-    site_title = get_setting("site_title", "Искусство в каждой детали")
-    site_desc = get_setting("site_desc", "Сумки · Шкатулки · Топы · Новогодние игрушки")
-    
-    return render_template("admin.html", products=products, workshops=ws, reviews=revs, bg=site_bg, title=site_title, desc=site_desc)
+    return render_template("admin.html", products=products, workshops=ws, reviews=revs)
 
-@app.route("/admin/settings/save", methods=["POST"])
+@app.route("/admin/settings", methods=["POST"])
 @login_required
 def save_settings():
     conn = db()
-    # Сохраняем тексты
-    for key in ["site_title", "site_desc"]:
-        val = request.form.get(key, "")
-        if conn.execute("SELECT 1 FROM settings WHERE key=?", (key,)).fetchone():
-            conn.execute("UPDATE settings SET value=? WHERE key=?", (val, key))
-        else:
-            conn.execute("INSERT INTO settings (key, value) VALUES (?,?)", (key, val))
-    
-    # Сохраняем баннер, если загрузили новый
-    f = request.files.get("site_bg")
+    for key in ["bg_color", "accent_color", "site_title"]:
+        if key in request.form:
+            conn.execute("UPDATE settings SET value=? WHERE key=?", (request.form[key], key))
+    f = request.files.get("banner_image")
     if f and f.filename:
         img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
         f.save(os.path.join(UPLOAD_FOLDER, img))
-        if conn.execute("SELECT 1 FROM settings WHERE key='site_bg'").fetchone():
-            conn.execute("UPDATE settings SET value=? WHERE key='site_bg'", (img,))
-        else:
-            conn.execute("INSERT INTO settings (key, value) VALUES ('site_bg', ?)", (img,))
-            
-    conn.commit()
-    conn.close()
+        conn.execute("UPDATE settings SET value=? WHERE key='banner_image'", (img,))
+    conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
 @app.route("/admin/product/add", methods=["POST"])
 @login_required
 def add_product():
-    img = ""
-    f = request.files.get("image")
-    if f and f.filename:
-        img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
-        f.save(os.path.join(UPLOAD_FOLDER, img))
-        
-    extra_imgs = []
-    for f in request.files.getlist("extra_images"):
+    images = []
+    files = request.files.getlist("images")
+    for f in files:
         if f and f.filename:
-            ext = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
-            f.save(os.path.join(UPLOAD_FOLDER, ext))
-            extra_imgs.append(ext)
-            
+            img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
+            f.save(os.path.join(UPLOAD_FOLDER, img))
+            images.append(img)
+    img_str = ",".join(images) if images else ""
+    main_img = images[0] if images else ""
     conn = db()
-    conn.execute("INSERT INTO products (category,title,description,price,image,extra_images) VALUES (?,?,?,?,?,?)",
+    conn.execute("INSERT INTO products (category,title,description,price,color,image,images) VALUES (?,?,?,?,?,?,?)",
                  (request.form["category"], request.form["title"],
-                  request.form["description"], int(request.form["price"]), img, ",".join(extra_imgs)))
+                  request.form["description"], int(request.form["price"]), request.form["color"], main_img, img_str))
     conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
@@ -209,12 +194,13 @@ def delete_product(pid):
 @login_required
 def edit_product(pid):
     conn = db()
-    conn.execute("UPDATE products SET category=?, title=?, description=?, price=? WHERE id=?",
+    conn.execute("UPDATE products SET category=?, title=?, description=?, price=?, color=? WHERE id=?",
                  (request.form["category"], request.form["title"],
-                  request.form["description"], int(request.form["price"]), pid))
+                  request.form["description"], int(request.form["price"]), request.form["color"], pid))
     conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
+# (Остальные функции для мастер-классов и отзывов оставляем без изменений, они ниже в твоем файле)
 @app.route("/admin/workshop/add", methods=["POST"])
 @login_required
 def add_workshop():
@@ -224,8 +210,8 @@ def add_workshop():
         img = f"{uuid.uuid4().hex}_{secure_filename(f.filename)}"
         f.save(os.path.join(UPLOAD_FOLDER, img))
     conn = db()
-    conn.execute("INSERT INTO workshops (title,description,video_url,image) VALUES (?,?,?,?)",
-                 (request.form["title"], request.form["description"], request.form["video_url"], img))
+    conn.execute("INSERT INTO workshops (title,description,link,image,video) VALUES (?,?,?,?,?)",
+                 (request.form["title"], request.form["description"], request.form["link"], img, request.form["video"]))
     conn.commit(); conn.close()
     return redirect(url_for("admin"))
 
