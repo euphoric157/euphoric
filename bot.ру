@@ -6,49 +6,46 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = os.environ.get("BOT_TOKEN", "9021976633:AAHCa3ZGNbb0RBPWkgV40IS-UeB70DpNFrU")
+TOKEN = os.environ.get("BOT_TOKEN", "ВСТАВЬ_СЮДА_ТОКЕН")
 ADMIN_CHAT_ID = int(os.environ.get("ADMIN_CHAT_ID", 0))
 
 NAME, PHONE, ADDRESS, CUSTOM_TEXT = range(4)
 
-def get_product(pid):
-    if not os.path.exists("database.db"): return None
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    p = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
-    conn.close()
-    return p
-
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = ctx.args
+    
+    # 1. Свободный заказ
     if args and args[0] == "custom_order":
         await update.message.reply_text(
             "✨ Вы хотите сделать индивидуальный заказ или у вас есть вопрос?\n\n"
-            "Напишите, пожалуйста, что именно вы хотели бы заказать (или ваш вопрос), и мы свяжемся с вами! 👇"
+            "Напишите, пожалуйста, что именно вы хотели бы заказать, и мы свяжемся с вами! 👇"
         )
         return CUSTOM_TEXT
 
+    # 2. Корзина (несколько товаров)
     elif args and args[0].startswith("buy_cart_"):
-        ids_str = args[0].replace("buy_cart_", "")
-        ids = [int(i) for i in ids_str.split(",")]
+        items_str = args[0].replace("buy_cart_", "")
+        items = items_str.split(",")
         
         cart_titles = []
         total_price = 0
         
-        for pid in ids:
-            p = get_product(pid)
-            if p:
-                cart_titles.append(f"• {p['title']} ({p['price']} ₽)")
-                total_price += p['price']
+        for item in items:
+            parts = item.split("_")
+            if len(parts) >= 3:
+                title = parts[1].replace("%20", " ")
+                price = int(parts[2])
+                cart_titles.append(f"• {title} ({price} ₽)")
+                total_price += price
         
         if not cart_titles:
-            await update.message.reply_text("Товары не найдены 😔")
+            await update.message.reply_text("Ошибка корзины 😔")
             return ConversationHandler.END
             
         ctx.user_data["product"] = {
             "title": "Ваш заказ:\n" + "\n".join(cart_titles), 
             "price": total_price, 
-            "id": ids_str
+            "id": "cart"
         }
         await update.message.reply_text(
             f"🛍 *Ваш заказ:*\n\n" + "\n".join(cart_titles) + f"\n\n💰 Итого: {total_price} ₽\n\nКак вас зовут?", 
@@ -56,21 +53,24 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
         return NAME
 
+    # 3. Один товар
     elif args and args[0].startswith("buy_"):
-        pid = int(args[0].replace("buy_", ""))
-        p = get_product(pid)
-        
-        if not p:
-            await update.message.reply_text("Товар не найден 😔")
-            return ConversationHandler.END
+        parts = args[0].replace("buy_", "").split("_")
+        if len(parts) >= 3:
+            title = parts[1].replace("%20", " ")
+            price = int(parts[2])
             
-        ctx.user_data["product"] = dict(p)
-        await update.message.reply_text(
-            f"🛍 *{p['title']}*\n\n{p['description']}\n\n💰 Цена: {p['price']} ₽\n\nКак вас зовут?", 
-            parse_mode="Markdown"
-        )
-        return NAME
+            ctx.user_data["product"] = {"title": title, "price": price, "id": parts[0]}
+            await update.message.reply_text(
+                f"🛍 *{title}*\n\n💰 Цена: {price} ₽\n\nКак вас зовут?", 
+                parse_mode="Markdown"
+            )
+            return NAME
+        else:
+            await update.message.reply_text("Ошибка данных товара 😔")
+            return ConversationHandler.END
         
+    # 4. Обычный старт
     await update.message.reply_text(
         "Добро пожаловать в *EUPHORIC* ✨\n\nВыберите товар на сайте или нажмите 'Сделать заказ'.", 
         parse_mode="Markdown"
