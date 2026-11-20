@@ -1,257 +1,413 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EUPHORIC</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css">
-<style>
-    :root { --bg: {{ site_settings.bg_color }}; --accent: {{ site_settings.accent_color }}; }
-    body { background-color: var(--bg) !important; display: flex; flex-direction: column; min-height: 100vh; }
-    
-    .hero { background-image: url('/static/uploads/{{ site_settings.banner_image }}'); background-size: cover; background-position: center; padding: 120px 20px; position: relative; }
-    .hero::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10,10,10,0.6); }
-    .hero h2, .hero p { position: relative; z-index: 2; }
-    
-    .acc-menu { display: none; background: #111; padding: 20px; border: 1px solid #333; margin-bottom: 30px; text-align: center; }
-    .acc-menu a { color: #ccc; text-decoration: none; margin: 0 15px; font-size: 0.9rem; display: inline-block; margin-bottom: 10px; }
-    .acc-menu a:hover { color: var(--accent); }
-    
-    .btn-red { color: #e74c3c !important; border-color: #e74c3c !important; }
-    .btn-red:hover { background: #e74c3c !important; color: #fff !important; }
-
-    /* Новый красивый поиск */
-    .search-bar { max-width: 600px; margin: 0 auto 30px; padding: 0 20px; }
-    .search-bar input {
-        width: 100%; padding: 16px 20px; background: transparent;
-        border: 1px solid var(--accent); border-radius: 4px; color: #fff;
-        font-family: 'Montserrat', sans-serif; font-size: 0.95rem; outline: none;
-        transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .search-bar input::placeholder {
-        color: #888; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem;
-    }
-    .search-bar input:focus {
-        background: rgba(201, 169, 110, 0.05); box-shadow: 0 0 15px rgba(201, 169, 110, 0.3);
-    }
-
-    /* Подвал (Футер) */
-    footer { margin-top: auto; background: #050505; border-top: 1px solid #222; padding: 50px 20px 30px; text-align: center; }
-    footer h3 { color: var(--accent); font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 20px; letter-spacing: 2px;}
-    .social-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
-    .social-links a { color: #ccc; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; border: 1px solid #333; padding: 10px 20px; border-radius: 30px; }
-    .social-links a:hover { color: #fff; border-color: var(--accent); background: rgba(201, 169, 110, 0.1); }
-    footer p { color: #555; font-size: 0.8rem; margin-top: 20px; }
-
-    @media (max-width: 768px) {
-        .products { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; padding: 0 10px 40px !important; }
-        .card .img { height: 180px !important; }
-        .card h3 { font-size: 0.9rem !important; padding: 10px 5px 0 !important; }
-        .card .price { font-size: 0.9rem !important; padding: 0 5px 10px !important; }
-        .card .buy { font-size: 0.6rem !important; padding: 8px !important; }
-        .hero { padding: 80px 15px !important; }
-        .hero h2 { font-size: 2rem !important; }
-        .filters button { font-size: 0.7rem !important; padding: 8px 12px !important; }
-        nav a { font-size: 0.7rem !important; margin: 5px !important; }
-        header { flex-direction: column; padding: 15px !important; }
-        .social-links a { font-size: 0.7rem; padding: 8px 15px; }
-    }
-</style>
-</head>
-<body>
-
-<header>
-    <h1 style="color: var(--accent);">EUPHORIC</h1>
-    <nav>
-        <a href="/">Каталог</a> 
-        <a href="#" onclick="showFavorites()" style="color:#e74c3c;">Избранное (♥)</a>
-        <a href="/reviews">Отзывы</a>
-        <a href="/workshops">Мастер-классы</a>
-        <a href="#" onclick="makeCustomOrder()" style="color: var(--accent); font-weight: bold;">Сделать заказ</a>
-        <a href="#" onclick="openCart()" style="color: var(--accent);">Корзина (<span id="cart-count">0</span>)</a>
-    </nav>
-</header>
-
-<section class="hero">
-    <h2>{{ site_settings.site_title }}</h2>
-    <p>Сумки · Шкатулки · Топы · Игрушки 🎄</p>
-</section>
-
-<div class="search-bar">
-    <input type="text" id="search-input" placeholder="Что вы ищете?" onkeyup="searchProducts()">
-</div>
-
-<section class="filters">
-  <button onclick="filter('all', event)" class="active">Все</button>
-  <button onclick="filter('bags', event)">Сумки</button>
-  <button onclick="filter('boxes', event)">Шкатулки</button>
-  <button onclick="filter('tops', event)">Топы</button>
-  <button onclick="toggleAccMenu()" style="border-color:var(--accent); color:var(--accent);">Другие аксессуары ▾</button>
-  <button onclick="filter('toys', event)">Новогодние игрушки 🎄</button>
-  <button onclick="filter('new', event)" class="btn-red">🔥 Новинки</button>
-  <button onclick="filter('popular', event)" class="btn-red">⭐ Популярные</button>
-</section>
-
-<!-- Выпадающий список аксессуаров -->
-<div id="acc-menu" class="acc-menu">
-    <a href="#" onclick="filter('shalstuki', event)">Галстуки</a>
-    <a href="#" onclick="filter('partupei', event)">Партупеи</a>
-    <a href="#" onclick="filter('sumka-chehol', event)">Сумка-чехол</a>
-    <a href="#" onclick="filter('vorotnik', event)">Воротник</a>
-    <a href="#" onclick="filter('podsvetchnik', event)">Подсвечник</a>
-    <a href="#" onclick="filter('korzina', event)">Корзина</a>
-    <a href="#" onclick="filter('katholder', event)">Катхолдер</a>
-    <a href="#" onclick="filter('obvesy', event)">Обвесы</a>
-</div>
-
-<section class="products" id="products-grid">
-{% for p in products %}
-  <div class="card" data-cat="{{ p['category'] }}" data-title="{{ p['title']|lower }}" data-id="{{ p['id'] }}" data-sales="{{ p['sales'] }}">
-    <span class="fav-icon" onclick="toggleFav(event, {{ p['id'] }})">♥</span>
-    <a href="/product/{{ p['id'] }}" style="text-decoration:none; color:inherit;">
-      <div class="img">{% if p['image'] %}<img src="/static/uploads/{{ p['image'] }}" alt="{{ p['title'] }}">{% else %}<span style="color: var(--accent);">✦</span>{% endif %}</div>
-      <h3>{{ p['title'] }}</h3>
-      <div class="price">{{ p['price'] }} ₽</div>
-    </a>
-    <div style="padding: 0 10px 15px; text-align: center;">
-        <button class="buy" style="width: 100%; font-size: 0.7rem;" onclick="addToCart({{ p['id'] }}, '{{ p['title'] }}', {{ p['price'] }})">В корзину</button>
-    </div>
-  </div>
-{% endfor %}
-</section>
-
-<!-- ПОДВАЛ С СЕТЯМИ -->
-<footer>
-    <h3>EUPHORIC</h3>
-    <div class="social-links">
-        <a href="https://www.instagram.com/euphoric_bags?psln=cXgzZDZjeGcxbmxn" target="_blank">Инстаграм</a>
-        <a href="https://vk.ru/zlatoreva_euphoric" target="_blank">ВКонтакте</a>
-        <a href="https://vk.ru/euphoric_bags" target="_blank">Сообщество ВК</a>
-        <a href="https://www.tiktok.com/@euphoric_bags" target="_blank">ТикТок</a>
-    </div>
-    <p>© 2025 EUPHORIC. Все права защищены.</p>
-</footer>
-
-<!-- Модалка корзины -->
-<div id="cart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:#111; border: 1px solid var(--accent); padding: 30px; max-width: 500px; width: 90%; position: relative;">
-        <span onclick="closeCart()" style="position:absolute; top:15px; right:20px; color:var(--accent); font-size:24px; cursor:pointer;">×</span>
-        <h2 style="color:#e8dcc8; margin-bottom:20px; font-family:'Cormorant Garamond', serif;">Ваша корзина</h2>
-        <div id="cart-items" style="margin-bottom: 30px; color: #ccc; max-height: 300px; overflow-y: auto;"></div>
-        <button class="buy" style="width:100%;" onclick="checkout()">Оформить заказ</button>
-    </div>
-</div>
-
-<script>
-function makeCustomOrder() {
-    window.open('https://t.me/{{ bot }}?start=custom_order', '_blank');
-}
-
-function toggleAccMenu() {
-    let menu = document.getElementById('acc-menu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-}
-
-function searchProducts() {
-    let query = document.getElementById('search-input').value.toLowerCase();
-    document.querySelectorAll('.card').forEach(c => {
-        c.style.display = c.getAttribute('data-title').includes(query) ? '' : 'none';
-    });
-}
-
-function filter(cat, e){
-  if(e) e.preventDefault();
-  document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
-  if(e && e.target.tagName === 'BUTTON') e.target.classList.add('active');
-  
-  let container = document.getElementById('products-grid');
-  let cards = Array.from(container.querySelectorAll('.card'));
-
-  if(cat === 'new') cards.sort((a, b) => b.getAttribute('data-id') - a.getAttribute('data-id'));
-  else if(cat === 'popular') cards.sort((a, b) => b.getAttribute('data-sales') - a.getAttribute('data-sales'));
-
-  cards.forEach(c => {
-      if (cat === 'all' || cat === 'new' || cat === 'popular') c.style.display = '';
-      else c.style.display = (c.dataset.cat === cat) ? '' : 'none';
-      container.appendChild(c);
-  });
-  document.getElementById('acc-menu').style.display = 'none';
-}
-
-function updateFavIcons() {
-    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
-    document.querySelectorAll('.fav-icon').forEach(icon => {
-        let match = icon.getAttribute('onclick').match(/\d+/);
-        if (match) {
-            let id = parseInt(match[0]);
-            if (favs.includes(id)) icon.classList.add('active');
-            else icon.classList.remove('active');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EUPHORIC — Искусство в каждой детали</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        alabaster: '#FAF8F5', champagne: '#F2EDE4', espresso: '#1C1917',
+                        taupe: '#6E665F', gold: '#B89B72', goldDark: '#9A7F58', hairline: '#E5DFD5',
+                    },
+                    fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['"Manrope"', 'sans-serif'] },
+                    letterSpacing: { widest: '.22em' }
+                }
+            }
         }
-    });
-}
-updateFavIcons();
+    </script>
+    <style>
+        body { background-color: #FAF8F5; color: #1C1917; font-family: 'Manrope', sans-serif; overflow-x: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .product-img-wrap img { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .product-card:hover .product-img-wrap img { transform: scale(1.05); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="antialiased selection:bg-gold/20 selection:text-espresso">
 
-function toggleFav(event, id) {
-    event.preventDefault();
-    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
-    if (favs.includes(id)) favs = favs.filter(f => f !== id);
-    else favs.push(id);
-    localStorage.setItem('euphoric_favs', JSON.stringify(favs));
-    updateFavIcons();
-}
+    <div class="bg-champagne border-b border-hairline text-[11px] sm:text-xs tracking-wider uppercase text-taupe py-2 px-4 text-center">
+        Ручная работа из премиального жемчуга и хрусталя · Доставка по всей России
+    </div>
 
-function showFavorites() {
-    let favs = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
-    document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.card').forEach(c => {
-        let id = parseInt(c.getAttribute('data-id'));
-        c.style.display = favs.includes(id) ? '' : 'none';
-    });
-}
+    <header class="sticky top-0 z-40 bg-alabaster/90 backdrop-blur-md border-b border-hairline transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-20 flex items-center justify-between gap-4">
+            <nav class="hidden lg:flex items-center space-x-7 text-xs uppercase tracking-[0.14em] text-espresso/80 font-medium">
+                <a href="#catalog" class="hover:text-gold transition-colors">Каталог</a>
+                <a href="#workshops" class="hover:text-gold transition-colors">Мастер-классы</a>
+                <a href="#reviews" class="hover:text-gold transition-colors">Отзывы</a>
+            </nav>
+            <button id="mobile-menu-btn" class="lg:hidden p-2 -ml-2 text-espresso hover:text-gold"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <a href="#" class="font-serif text-2xl sm:text-3xl tracking-[0.22em] font-medium text-espresso uppercase select-none">EUPHORIC</a>
+            <div class="flex items-center space-x-2 sm:space-x-5">
+                <button onclick="openCustomOrderModal()" class="hidden md:inline-flex items-center text-xs uppercase tracking-[0.14em] text-espresso hover:text-gold border-b border-espresso/30 pb-0.5">Сделать заказ</button>
+                <button onclick="toggleWishlistFilter()" id="header-wishlist-btn" class="relative p-2 text-espresso hover:text-gold flex items-center gap-1.5">
+                    <i data-lucide="heart" id="header-heart-icon" class="w-5 h-5 stroke-[1.5]"></i>
+                    <span id="wishlist-count" class="text-xs font-medium">0</span>
+                </button>
+                <button onclick="toggleCart(true)" class="relative p-2 text-espresso hover:text-gold flex items-center gap-1.5">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 stroke-[1.5]"></i>
+                    <span id="cart-count" class="text-xs font-medium bg-espresso text-alabaster rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-alabaster border-b border-hairline px-6 py-5 space-y-4">
+            <nav class="flex flex-col space-y-3 text-sm uppercase tracking-[0.12em]">
+                <a href="#catalog" onclick="closeMobileMenu()" class="py-1 text-espresso hover:text-gold">Каталог</a>
+                <a href="#workshops" onclick="closeMobileMenu()" class="py-1 text-espresso hover:text-gold">Мастер-классы</a>
+                <a href="#reviews" onclick="closeMobileMenu()" class="py-1 text-espresso hover:text-gold">Отзывы</a>
+                <button onclick="closeMobileMenu(); openCustomOrderModal();" class="text-left py-1 text-gold font-medium">Сделать индивидуальный заказ →</button>
+            </nav>
+        </div>
+    </header>
 
-function updateCartCount() {
-    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
-    let el = document.getElementById('cart-count');
-    if(el) el.innerText = cart.length;
-}
-updateCartCount();
+    <section class="relative border-b border-hairline overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-20 lg:py-24">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                <div class="lg:col-span-6 space-y-6 sm:space-y-8 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-champagne border border-hairline text-xs tracking-wider uppercase text-taupe">
+                        <span>Новогодняя коллекция 🎄</span>
+                    </div>
+                    <h1 class="font-serif text-4xl sm:text-6xl lg:text-[64px] leading-[1.08] font-normal text-espresso tracking-tight">
+                        Искусство <br class="hidden sm:inline"><span class="italic font-normal text-goldDark">в каждой детали</span>
+                    </h1>
+                    <p class="text-sm sm:text-base text-taupe tracking-wide uppercase font-normal">Сумки &nbsp;·&nbsp; Шкатулки &nbsp;·&nbsp; Топы &nbsp;·&nbsp; Игрушки</p>
+                    <p class="text-sm sm:text-base text-espresso/80 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light">
+                        Каждое изделие EUPHORIC сплетено вручную с ювелирной точностью. Аксессуары из перламутрового жемчуга и сияющих кристаллов, которые превращают повседневный образ в событие.
+                    </p>
+                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+                        <a href="#catalog" class="w-full sm:w-auto px-8 py-4 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors text-center">Смотреть каталог</a>
+                        <button onclick="openCustomOrderModal()" class="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent border border-espresso/30 text-espresso text-xs uppercase tracking-[0.16em] font-medium hover:border-espresso hover:bg-champagne/60 transition-colors">Индивидуальный заказ</button>
+                    </div>
+                </div>
+                <div class="lg:col-span-6">
+                    <div class="relative max-w-md mx-auto lg:max-w-none">
+                        <div class="aspect-[4/5] rounded-2xl overflow-hidden bg-champagne border border-hairline shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1000&q=85" alt="Сумка ручной работы EUPHORIC" class="w-full h-full object-cover">
+                        </div>
+                        <div class="hidden sm:block absolute -bottom-6 -left-6 bg-alabaster/95 backdrop-blur-md border border-hairline rounded-2xl p-5 max-w-[230px] shadow-sm">
+                            <p class="font-serif italic text-lg text-espresso leading-snug">«Kelly» Pearl Edition</p>
+                            <p class="text-xs text-taupe mt-1">100% ручное плетение · 18 часов работы</p>
+                            <a href="#catalog" class="inline-block mt-3 text-[11px] uppercase tracking-widest text-goldDark font-medium hover:underline">В коллекцию →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-function addToCart(id, title, price) {
-    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
-    if (!cart.find(item => item.id === id)) {
-        cart.push({ id: id, title: title, price: price });
-        localStorage.setItem('euphoric_cart', JSON.stringify(cart));
-        updateCartCount();
-        alert('Товар добавлен в корзину!');
-    } else alert('Этот товар уже в корзине');
-}
+    <section id="catalog" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+                <span class="text-xs uppercase tracking-[0.2em] text-goldDark block mb-2">Коллекция</span>
+                <h2 class="font-serif text-3xl sm:text-5xl font-normal text-espresso">Изделия ручной работы</h2>
+            </div>
+            <p id="catalog-status" class="text-xs sm:text-sm text-taupe">Показаны все изделия</p>
+        </div>
+        <div class="relative mb-12">
+            <div id="category-filters" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-2"></div>
+        </div>
+        <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12"></div>
+        <div id="empty-wishlist-state" class="hidden text-center py-20 bg-champagne/50 rounded-2xl border border-hairline">
+            <i data-lucide="heart" class="w-8 h-8 mx-auto text-taupe/60 mb-3 stroke-[1.5]"></i>
+            <h3 class="font-serif text-2xl text-espresso mb-2">В избранном пока пусто</h3>
+            <p class="text-sm text-taupe mb-6">Нажмите на сердечко на карточке товара, чтобы сохранить понравившиеся изделия.</p>
+            <button onclick="resetFilters()" class="px-6 py-3 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-widest hover:bg-goldDark transition-colors">Вернуться ко всем товарам</button>
+        </div>
+    </section>
 
-function openCart() {
-    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
-    let container = document.getElementById('cart-items');
-    container.innerHTML = '';
-    if (cart.length === 0) container.innerHTML = '<p style="color:#888;">Ваша корзина пуста.</p>';
-    else {
-        cart.forEach(item => {
-            container.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;"><span>${item.title}</span><span style="color:var(--accent);">${item.price} ₽</span></div>`;
-        });
-    }
-    document.getElementById('cart-modal').style.display = 'flex';
-}
+    <footer class="bg-espresso text-alabaster pt-16 pb-12 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-alabaster/15">
+                <div class="md:col-span-5 space-y-4">
+                    <a href="#" class="font-serif text-3xl tracking-[0.22em] uppercase text-alabaster">EUPHORIC</a>
+                    <p class="text-sm text-alabaster/70 font-light max-w-sm leading-relaxed">Искусство в каждой детали. Авторские сумки, шкатулки и аксессуары ручной работы из премиальных бусин и хрусталя.</p>
+                </div>
+                <div class="md:col-span-3 space-y-3">
+                    <h4 class="text-xs uppercase tracking-[0.18em] text-gold">Разделы</h4>
+                    <ul class="space-y-2.5 text-sm text-alabaster/75 font-light">
+                        <li><a href="#catalog" class="hover:text-alabaster transition-colors">Каталог изделий</a></li>
+                        <li><a href="#workshops" class="hover:text-alabaster transition-colors">Мастер-классы</a></li>
+                        <li><a href="#reviews" class="hover:text-alabaster transition-colors">Отзывы покупателей</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-4 space-y-3">
+                    <h4 class="text-xs uppercase tracking-[0.18em] text-gold">Мы в соцсетях</h4>
+                    <div class="flex flex-wrap gap-2.5 pt-1">
+                        <a href="https://www.instagram.com/euphoric_bags" target="_blank" class="px-4 py-2 rounded-full border border-alabaster/20 text-xs hover:border-gold hover:text-gold transition-colors">Инстаграм</a>
+                        <a href="https://vk.ru/zlatoreva_euphoric" target="_blank" class="px-4 py-2 rounded-full border border-alabaster/20 text-xs hover:border-gold hover:text-gold transition-colors">ВКонтакте</a>
+                        <a href="https://vk.ru/euphoric_bags" target="_blank" class="px-4 py-2 rounded-full border border-alabaster/20 text-xs hover:border-gold hover:text-gold transition-colors">Сообщество ВК</a>
+                        <a href="https://www.tiktok.com/@euphoric_bags" target="_blank" class="px-4 py-2 rounded-full border border-alabaster/20 text-xs hover:border-gold hover:text-gold transition-colors">ТикТок</a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-alabaster/50">
+                <p>© 2026 EUPHORIC. Все права защищены.</p>
+                <p>Сделано с любовью к ручному труду</p>
+            </div>
+        </div>
+    </footer>
 
-function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
+    <!-- Модалка быстрого просмотра -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-espresso/50 backdrop-blur-sm">
+        <div class="bg-alabaster border border-hairline rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl relative animate-fade-up">
+            <button onclick="closeProductModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-alabaster/90 border border-hairline flex items-center justify-center text-espresso hover:text-gold"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <div id="product-modal-content" class="grid grid-cols-1 md:grid-cols-2"></div>
+        </div>
+    </div>
 
-function checkout() {
-    let cart = JSON.parse(localStorage.getItem('euphoric_cart')) || [];
-    if (cart.length === 0) { alert('Корзина пуста!'); return; }
-    let ids = cart.map(item => item.id).join(',');
-    localStorage.removeItem('euphoric_cart');
-    window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
-    closeCart();
-    updateCartCount();
-}
-</script>
+    <!-- Корзина -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 hidden">
+        <div onclick="toggleCart(false)" class="absolute inset-0 bg-espresso/45 backdrop-blur-xs transition-opacity"></div>
+        <div class="absolute inset-y-0 right-0 max-w-md w-full bg-alabaster border-l border-hairline shadow-2xl flex flex-col justify-between">
+            <div class="px-6 py-5 border-b border-hairline flex items-center justify-between">
+                <h3 class="font-serif text-2xl text-espresso">Ваша корзина</h3>
+                <button onclick="toggleCart(false)" class="p-2 text-taupe hover:text-espresso"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-5"></div>
+            <div id="cart-footer" class="p-6 bg-champagne border-t border-hairline space-y-4 hidden">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-taupe uppercase tracking-wider text-xs">Итого</span>
+                    <span id="cart-total-price" class="font-serif text-2xl font-medium text-espresso">0 ₽</span>
+                </div>
+                <button onclick="submitOrder()" class="w-full py-3.5 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors">Оформить в Telegram</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка индивидуального заказа -->
+    <div id="custom-order-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-espresso/50 backdrop-blur-sm">
+        <div class="bg-alabaster border border-hairline rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-fade-up text-center">
+            <button onclick="closeCustomOrderModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-hairline flex items-center justify-center text-espresso hover:text-gold"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <span class="text-xs uppercase tracking-[0.2em] text-goldDark">Ателье EUPHORIC</span>
+            <h3 class="font-serif text-3xl text-espresso mt-1 mb-2">Индивидуальный заказ</h3>
+            <p class="text-xs sm:text-sm text-taupe mb-6">Нажмите кнопку ниже, чтобы перейти в нашего Telegram-бота и обсудить детали заказа с мастером.</p>
+            <button onclick="goToCustomOrder()" class="w-full py-4 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors">Перейти в Telegram</button>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div id="toast-notification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-espresso text-alabaster px-5 py-3.5 rounded-full shadow-lg border border-alabaster/10 flex items-center gap-3 text-xs tracking-wide">
+            <span class="w-2 h-2 rounded-full bg-gold"></span>
+            <span id="toast-message">Товар добавлен</span>
+        </div>
+    </div>
+
+    <script>
+        // --- ДАННЫЕ ИЗ БАЗЫ FLASK ---
+        const CATEGORIES = ["Все", "Сумки", "Шкатулки", "Топы", "Другие аксессуары", "Новогодние игрушки"];
+        
+        const PRODUCTS = [
+            {% for p in products %}
+            {
+                id: {{ p['id'] }},
+                name: "{{ p['title'] }}",
+                category: "{{ p['category'] }}",
+                price: {{ p['price'] }},
+                image: "{% if p['image'] %}/static/uploads/{{ p['image'] }}{% else %}https://placehold.co/600x750/F2EDE4/1C1917?text=Фото{% endif %}",
+                description: "{{ p['description'] }}",
+                color: "{{ p['color'] or '' }}"
+            },
+            {% endfor %}
+        ];
+
+        // Сопоставление английских категорий из базы с русскими для фильтра
+        const CAT_MAP = {
+            "bags": "Сумки", "boxes": "Шкатулки", "tops": "Топы", "toys": "Новогодние игрушки",
+            "shalstuki": "Другие аксессуары", "partupei": "Другие аксессуары", "sumka-chehol": "Другие аксессуары",
+            "vorotnik": "Другие аксессуары", "podsvetchnik": "Другие аксессуары", "korzina": "Другие аксессуары",
+            "katholder": "Другие аксессуары", "obvesy": "Другие аксессуары"
+        };
+
+        // Заменяем английские категории на русские для отображения
+        PRODUCTS.forEach(p => { p.category = CAT_MAP[p.category] || p.category; });
+
+        let activeCategory = "Все";
+        let showOnlyWishlist = false;
+        let wishlist = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
+        let cart = [];
+
+        function formatPrice(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ₽"; }
+
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 2800);
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('category-filters');
+            container.innerHTML = CATEGORIES.map(cat => {
+                const isActive = !showOnlyWishlist && activeCategory === cat;
+                return `<button onclick="selectCategory('${cat}')" class="whitespace-nowrap px-5 py-2.5 rounded-full text-xs uppercase tracking-[0.14em] transition-all border ${isActive ? 'bg-espresso text-alabaster border-espresso font-medium shadow-xs' : 'bg-transparent text-espresso/80 border-hairline hover:border-espresso/40 hover:bg-champagne/60'}">${cat}</button>`;
+            }).join('');
+        }
+
+        function selectCategory(category) { showOnlyWishlist = false; activeCategory = category; updateHeaderWishlistUI(); renderCategories(); renderProducts(); }
+        function toggleWishlistFilter() { showOnlyWishlist = !showOnlyWishlist; updateHeaderWishlistUI(); renderCategories(); renderProducts(); document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' }); }
+        function resetFilters() { showOnlyWishlist = false; activeCategory = "Все"; updateHeaderWishlistUI(); renderCategories(); renderProducts(); }
+
+        function updateHeaderWishlistUI() {
+            document.getElementById('wishlist-count').textContent = wishlist.length;
+            const heartIcon = document.getElementById('header-heart-icon');
+            showOnlyWishlist ? heartIcon.classList.add('fill-gold', 'text-gold') : heartIcon.classList.remove('fill-gold', 'text-gold');
+        }
+
+        function toggleWishlist(event, productId) {
+            event.stopPropagation();
+            const index = wishlist.indexOf(productId);
+            if (index === -1) { wishlist.push(productId); showToast('Добавлено в избранное'); }
+            else { wishlist.splice(index, 1); showToast('Удалено из избранного'); }
+            localStorage.setItem('euphoric_favs', JSON.stringify(wishlist));
+            updateHeaderWishlistUI(); renderProducts();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-wishlist-state');
+            const statusText = document.getElementById('catalog-status');
+            let filtered = PRODUCTS;
+
+            if (showOnlyWishlist) { filtered = PRODUCTS.filter(p => wishlist.includes(p.id)); statusText.textContent = `Избранное (${filtered.length})`; }
+            else if (activeCategory !== "Все") { filtered = PRODUCTS.filter(p => p.category === activeCategory); statusText.textContent = `Категория: ${activeCategory} (${filtered.length})`; }
+            else { statusText.textContent = `Показаны все изделия (${filtered.length})`; }
+
+            if (filtered.length === 0) { grid.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
+            else emptyState.classList.add('hidden');
+
+            grid.innerHTML = filtered.map(product => {
+                const isLiked = wishlist.includes(product.id);
+                return `
+                    <article onclick="openProductModal(${product.id})" class="product-card group cursor-pointer flex flex-col animate-fade-up">
+                        <div class="product-img-wrap relative aspect-[4/5] rounded-2xl overflow-hidden bg-champagne border border-hairline mb-3 sm:mb-4">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover">
+                            <button onclick="toggleWishlist(event, ${product.id})" class="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-alabaster/90 backdrop-blur-xs border border-hairline flex items-center justify-center text-espresso hover:scale-105 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isLiked ? '#B89B72' : 'none'}" stroke="${isLiked ? '#B89B72' : 'currentColor'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                            </button>
+                            <div class="absolute inset-x-2 bottom-2 sm:inset-x-3.5 sm:bottom-3.5 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hidden sm:block">
+                                <button onclick="addToCart(event, ${product.id})" class="w-full py-2.5 sm:py-3 rounded-full bg-espresso/95 backdrop-blur-xs text-alabaster text-[10px] sm:text-[11px] uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors">В корзину</button>
+                            </div>
+                        </div>
+                        <div class="flex items-start justify-between gap-1 px-1">
+                            <div>
+                                <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-taupe mb-0.5 sm:mb-1">${product.category}</p>
+                                <h3 class="font-serif text-lg sm:text-2xl text-espresso group-hover:text-goldDark transition-colors leading-tight">${product.name}</h3>
+                            </div>
+                            <span class="text-xs sm:text-base font-medium text-espresso whitespace-nowrap pt-1">${formatPrice(product.price)}</span>
+                        </div>
+                        <button onclick="addToCart(event, ${product.id})" class="mt-2 sm:hidden w-full py-2 rounded-full border border-espresso/25 text-espresso text-[10px] uppercase tracking-[0.14em] hover:bg-espresso hover:text-alabaster transition-colors">В корзину</button>
+                    </article>`;
+            }).join('');
+        }
+
+        function openProductModal(productId) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            if (!product) return;
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('product-modal-content');
+            content.innerHTML = `
+                <div class="aspect-square md:aspect-auto bg-champagne"><img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover"></div>
+                <div class="p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                    <div class="space-y-3">
+                        <span class="text-xs uppercase tracking-[0.18em] text-goldDark">${product.category}</span>
+                        <h3 class="font-serif text-3xl sm:text-4xl text-espresso">${product.name}</h3>
+                        <p class="text-xl font-medium text-espresso">${formatPrice(product.price)}</p>
+                        ${product.color ? `<p class="text-sm text-taupe">Цвет: <span class="text-espresso font-medium">${product.color}</span></p>` : ''}
+                        <p class="text-sm text-espresso/80 leading-relaxed font-light pt-2">${product.description}</p>
+                    </div>
+                    <div class="space-y-2.5 pt-2">
+                        <button onclick="addToCart(event, ${product.id}); closeProductModal();" class="w-full py-3.5 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors">Добавить в корзину</button>
+                    </div>
+                </div>`;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); document.getElementById('product-modal').classList.remove('flex'); }
+
+        function addToCart(event, productId) {
+            if (event) event.stopPropagation();
+            const product = PRODUCTS.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+            existing ? existing.qty += 1 : cart.push({ ...product, qty: 1 });
+            updateCartUI(); showToast(`«${product.name}» добавлен`);
+        }
+
+        function changeCartQty(productId, delta) {
+            const index = cart.findIndex(item => item.id === productId);
+            if (index === -1) return;
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            document.getElementById('cart-count').textContent = totalItems;
+            document.getElementById('cart-total-price').textContent = formatPrice(totalPrice);
+            const container = document.getElementById('cart-items-container');
+            const footer = document.getElementById('cart-footer');
+
+            if (cart.length === 0) {
+                footer.classList.add('hidden');
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center py-12"><i data-lucide="shopping-bag" class="w-10 h-10 text-taupe/50 mb-3"></i><p class="font-serif text-2xl text-espresso mb-1">Корзина пуста</p></div>`;
+                lucide.createIcons(); return;
+            }
+            footer.classList.remove('hidden');
+            container.innerHTML = cart.map(item => `
+                <div class="flex gap-4 pb-5 border-b border-hairline">
+                    <img src="${item.image}" class="w-20 h-24 rounded-xl object-cover border border-hairline">
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2"><h4 class="font-serif text-xl text-espresso">${item.name}</h4><span class="text-sm font-medium text-espresso">${formatPrice(item.price * item.qty)}</span></div>
+                            <p class="text-[11px] uppercase tracking-wider text-taupe">${item.category}</p>
+                        </div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <div class="inline-flex items-center border border-hairline rounded-full bg-champagne/50">
+                                <button onclick="changeCartQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">−</button>
+                                <span class="px-2.5 text-xs font-medium">${item.qty}</span>
+                                <button onclick="changeCartQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function toggleCart(open) {
+            const drawer = document.getElementById('cart-drawer');
+            if (open) { drawer.classList.remove('hidden'); updateCartUI(); } else { drawer.classList.add('hidden'); }
+        }
+
+        function submitOrder() {
+            if (cart.length === 0) return;
+            let ids = cart.map(item => item.id).join(',');
+            window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
+            cart = [];
+            updateCartUI();
+            toggleCart(false);
+            showToast('Заказ сформирован! Перейдите в Telegram.');
+        }
+
+        function openCustomOrderModal() { document.getElementById('custom-order-modal').classList.remove('hidden'); document.getElementById('custom-order-modal').classList.add('flex'); }
+        function closeCustomOrderModal() { document.getElementById('custom-order-modal').classList.add('hidden'); document.getElementById('custom-order-modal').classList.remove('flex'); }
+        function goToCustomOrder() { window.open('https://t.me/{{ bot }}?start=custom_order', '_blank'); closeCustomOrderModal(); }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
+        function closeMobileMenu() { document.getElementById('mobile-menu').classList.add('hidden'); }
+
+        window.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); updateHeaderWishlistUI(); renderCategories(); renderProducts(); updateCartUI(); });
+    </script>
 </body>
 </html>
