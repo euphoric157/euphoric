@@ -70,7 +70,6 @@
         </div>
     </header>
 
-    <!-- Главный экран -->
     <section class="relative border-b border-hairline overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-20 lg:py-24">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -102,7 +101,6 @@
         </div>
     </section>
 
-    <!-- Каталог -->
     <section id="catalog" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
@@ -122,7 +120,6 @@
         </div>
     </section>
 
-    <!-- Мастер-классы -->
     <section id="workshops" class="py-16 sm:py-24 bg-champagne border-y border-hairline">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
             <div class="text-center max-w-xl mx-auto mb-10">
@@ -154,7 +151,6 @@
         </div>
     </section>
 
-    <!-- Отзывы -->
     <section id="reviews" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         <div class="text-center max-w-xl mx-auto mb-10">
             <span class="text-xs uppercase tracking-[0.2em] text-goldDark">Впечатления</span>
@@ -215,7 +211,6 @@
         </div>
     </footer>
 
-    <!-- Модалка товара, корзина и т.д. -->
     <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-espresso/50 backdrop-blur-sm">
         <div class="bg-alabaster border border-hairline rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl relative animate-fade-up">
             <button onclick="closeProductModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-alabaster/90 border border-hairline flex items-center justify-center text-espresso hover:text-gold"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -259,7 +254,14 @@
     </div>
 
     <script>
-        const CATEGORIES = ["Все", "Сумки", "Шкатулки", "Топы", "Другие аксессуары", "Новогодние игрушки"];
+        // ВОТ ЗДЕСЬ ВСЕ КАТЕГОРИИ ВОЗВРАЩЕНЫ
+        const CATEGORIES = [
+            "Все", "Сумки", "Шкатулки", "Топы", 
+            "Шалстуки", "Партупеи", "Сумка-чехол", 
+            "Воротник", "Подсвечник", "Корзина", 
+            "Катхолдер", "Обвесы", "Новогодние игрушки 🎄"
+        ];
+
         const PRODUCTS = [
             {% for p in products %}
             {
@@ -275,11 +277,12 @@
         ];
 
         const CAT_MAP = {
-            "bags": "Сумки", "boxes": "Шкатулки", "tops": "Топы", "toys": "Новогодние игрушки",
-            "shalstuki": "Другие аксессуары", "partupei": "Другие аксессуары", "sumka-chehol": "Другие аксессуары",
-            "vorotnik": "Другие аксессуары", "podsvetchnik": "Другие аксессуары", "korzina": "Другие аксессуары",
-            "katholder": "Другие аксессуары", "obvesy": "Другие аксессуары"
+            "bags": "Сумки", "boxes": "Шкатулки", "tops": "Топы", "toys": "Новогодние игрушки 🎄",
+            "shalstuki": "Шалстуки", "partupei": "Партупеи", "sumka-chehol": "Сумка-чехол",
+            "vorotnik": "Воротник", "podsvetchnik": "Подсвечник", "korzina": "Корзина",
+            "katholder": "Катхолдер", "obvesy": "Обвесы"
         };
+
         PRODUCTS.forEach(p => { p.category = CAT_MAP[p.category] || p.category; });
 
         let activeCategory = "Все", showOnlyWishlist = false;
@@ -404,4 +407,57 @@
             const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
             document.getElementById('cart-count').textContent = totalItems;
             document.getElementById('cart-total-price').textContent = formatPrice(totalPrice);
-            const container = document.getElementById('cart-items
+            const container = document.getElementById('cart-items-container');
+            const footer = document.getElementById('cart-footer');
+
+            if (cart.length === 0) {
+                footer.classList.add('hidden');
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center py-12"><i data-lucide="shopping-bag" class="w-10 h-10 text-taupe/50 mb-3"></i><p class="font-serif text-2xl text-espresso mb-1">Корзина пуста</p></div>`;
+                lucide.createIcons(); return;
+            }
+            footer.classList.remove('hidden');
+            container.innerHTML = cart.map(item => `
+                <div class="flex gap-4 pb-5 border-b border-hairline">
+                    <img src="${item.image}" class="w-20 h-24 rounded-xl object-cover border border-hairline">
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2"><h4 class="font-serif text-xl text-espresso">${item.name}</h4><span class="text-sm font-medium text-espresso">${formatPrice(item.price * item.qty)}</span></div>
+                            <p class="text-[11px] uppercase tracking-wider text-taupe">${item.category}</p>
+                        </div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <div class="inline-flex items-center border border-hairline rounded-full bg-champagne/50">
+                                <button onclick="changeCartQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">−</button>
+                                <span class="px-2.5 text-xs font-medium">${item.qty}</span>
+                                <button onclick="changeCartQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function toggleCart(open) {
+            const drawer = document.getElementById('cart-drawer');
+            if (open) { drawer.classList.remove('hidden'); updateCartUI(); } else { drawer.classList.add('hidden'); }
+        }
+
+        function submitOrder() {
+            if (cart.length === 0) return;
+            let ids = cart.map(item => item.id).join(',');
+            window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
+            cart = [];
+            updateCartUI();
+            toggleCart(false);
+            showToast('Заказ сформирован! Перейдите в Telegram.');
+        }
+
+        function openCustomOrderModal() { document.getElementById('custom-order-modal').classList.remove('hidden'); document.getElementById('custom-order-modal').classList.add('flex'); }
+        function closeCustomOrderModal() { document.getElementById('custom-order-modal').classList.add('hidden'); document.getElementById('custom-order-modal').classList.remove('flex'); }
+        function goToCustomOrder() { window.open('https://t.me/{{ bot }}?start=custom_order', '_blank'); closeCustomOrderModal(); }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
+        function closeMobileMenu() { document.getElementById('mobile-menu').classList.add('hidden'); }
+
+        window.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); updateHeaderWishlistUI(); renderCategories(); renderProducts(); updateCartUI(); });
+    </script>
+</body>
+</html>
