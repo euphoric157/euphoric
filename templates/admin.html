@@ -4,155 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Админка — EUPHORIC</title>
-<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    alabaster: '#FAF8F5', champagne: '#F2EDE4', espresso: '#1C1917',
+                    taupe: '#6E665F', gold: '#B89B72', goldDark: '#9A7F58', hairline: '#E5DFD5',
+                },
+                fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['"Manrope"', 'sans-serif'] },
+            }
+        }
+    }
+</script>
 <style>
-    .admin-block { background:#111; border: 1px solid #333; border-radius:16px; padding:24px; margin-bottom: 24px; }
-    .admin-block h2 { color:#e8dcc8; font-family:'Cormorant Garamond', serif; margin-bottom:15px; font-size: 1.8rem; }
-    .admin-form input, .admin-form select, .admin-form textarea { width: 100%; padding: 10px; margin-bottom: 10px; background: #0a0a0a; border: 1px solid #333; color: #fff; border-radius: 4px; font-family: 'Montserrat', sans-serif; }
-    .admin-form button { background: #c9a96e; color: #000; padding: 12px 24px; border: none; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; letter-spacing: 1px; }
-    .admin-row { border-bottom: 1px solid #222; padding: 15px 0; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-start; }
-    .danger { background: #e74c3c !important; color: #fff !important; border: none; cursor: pointer; }
-    .admin-form label { display: block; color: #888; font-size: 0.85rem; margin-bottom: 5px; }
+    body { background-color: #FAF8F5; color: #1C1917; font-family: 'Manrope', sans-serif; }
+    .admin-card { background: #fff; border: 1px solid #E5DFD5; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    .admin-input { width: 100%; padding: 12px; margin-bottom: 12px; background: #FAF8F5; border: 1px solid #E5DFD5; border-radius: 8px; font-family: 'Manrope', sans-serif; }
+    .admin-input:focus { outline: none; border-color: #B89B72; }
+    .btn-primary { background: #1C1917; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; border: none; width: 100%; }
+    .btn-primary:hover { background: #9A7F58; }
+    .btn-danger { background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; }
+    .btn-danger:hover { background: #fca5a5; }
+    details > summary { cursor: pointer; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: #1C1917; padding: 10px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5DFD5; margin-bottom: 20px; }
+    details > summary::after { content: '+'; font-size: 1.5rem; color: #B89B72; font-family: 'Manrope'; font-weight: 300; }
+    details[open] > summary::after { content: '−'; }
 </style>
 </head>
-<body>
-<header>
-    <h1>Админка EUPHORIC</h1>
-    <nav><a href="/admin/logout" style="color:#c9a96e;">Выйти</a></nav>
+<body class="antialiased">
+
+<header class="sticky top-0 z-40 bg-alabaster/90 backdrop-blur-md border-b border-hairline p-4 flex justify-between items-center">
+    <a href="/" class="font-serif text-2xl tracking-[0.2em] font-medium text-espresso uppercase">EUPHORIC <span class="text-xs text-gold font-sans uppercase tracking-normal ml-2">Admin</span></a>
+    <a href="/admin/logout" class="text-xs uppercase tracking-widest text-taupe hover:text-gold">Выйти</a>
 </header>
 
-<div style="max-width:1000px; margin: 0 auto; padding: 24px;">
+<div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-10">
 
-<!-- 1. НАСТРОЙКИ САЙТА -->
-<section class="admin-block">
-  <h2>⚙️ Настройки сайта</h2>
-  <form action="/admin/settings" method="post" enctype="multipart/form-data" class="admin-form">
-    <label>Заголовок на главной:</label>
-    <input name="site_title" value="{{ site_settings.site_title }}">
-    
-    <label>Цвет фона (HEX):</label>
-    <input name="bg_color" value="{{ site_settings.bg_color }}">
-    
-    <label>Цвет акцента (HEX):</label>
-    <input name="accent_color" value="{{ site_settings.accent_color }}">
-    
-    <label>Баннер (картинка):</label>
-    <input type="file" name="banner_image" accept="image/*">
-    
-    <button type="submit">Сохранить настройки</button>
-  </form>
-</section>
+    <!-- 1. НАСТРОЙКИ САЙТА -->
+    <details class="admin-card" open>
+        <summary>⚙️ Настройки сайта</summary>
+        <form action="/admin/settings" method="post" enctype="multipart/form-data">
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Заголовок на главной</label>
+            <input name="site_title" value="{{ site_settings.site_title }}" class="admin-input" required>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Цвет фона (HEX)</label>
+                    <input name="bg_color" value="{{ site_settings.bg_color }}" class="admin-input" type="color">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Цвет акцента (HEX)</label>
+                    <input name="accent_color" value="{{ site_settings.accent_color }}" class="admin-input" type="color">
+                </div>
+            </div>
+            
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1 mt-2">Баннер (главная картинка)</label>
+            {% if site_settings.banner_image %}
+                <img src="/static/uploads/{{ site_settings.banner_image }}" class="h-20 w-auto rounded mb-2 border border-hairline">
+            {% endif %}
+            <input type="file" name="banner_image" accept="image/*" class="admin-input bg-white">
+            
+            <button type="submit" class="btn-primary mt-2">Сохранить настройки</button>
+        </form>
+    </details>
 
-<!-- 2. ДОБАВЛЕНИЕ ТОВАРА -->
-<section class="admin-block">
-  <h2>➕ Добавить товар</h2>
-  <form action="/admin/product/add" method="post" enctype="multipart/form-data" class="admin-form">
-    <select name="category" required>
-      <option value="bags">Сумки</option>
-      <option value="boxes">Шкатулки</option>
-      <option value="tops">Топы</option>
-      <option value="shalstuki">Галстуки (Аксессуары)</option>
-      <option value="partupei">Партупеи (Аксессуары)</option>
-      <option value="sumka-chehol">Сумка-чехол (Аксессуары)</option>
-      <option value="vorotnik">Воротник (Аксессуары)</option>
-      <option value="podsvetchnik">Подсвечник (Аксессуары)</option>
-      <option value="korzina">Корзина (Аксессуары)</option>
-      <option value="katholder">Катхолдер (Аксессуары)</option>
-      <option value="obvesy">Обвесы (Аксессуары)</option>
-      <option value="toys">Новогодние игрушки 🎄</option>
-    </select>
-    
-    <input name="title" placeholder="Название" required>
-    <textarea name="description" placeholder="Описание" rows="3"></textarea>
-    <input name="price" type="number" placeholder="Цена, ₽" required>
-    <input name="color" placeholder="Цвет изделия (например: Черный, Бежевый)">
-    
-    <label>Фотографии (можно выбрать несколько):</label>
-    <input name="images" type="file" accept="image/*" multiple>
-    
-    <button type="submit">Добавить товар</button>
-  </form>
-</section>
+    <!-- 2. ДОБАВЛЕНИЕ ТОВАРА -->
+    <details class="admin-card">
+        <summary>➕ Добавить товар</summary>
+        <form action="/admin/product/add" method="post" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Категория</label>
+                    <select name="category" required class="admin-input">
+                        <option value="bags">Сумки</option>
+                        <option value="boxes">Шкатулки</option>
+                        <option value="tops">Топы</option>
+                        <option value="shalstuki">Шалстуки</option>
+                        <option value="partupei">Партупеи</option>
+                        <option value="sumka-chehol">Сумка-чехол</option>
+                        <option value="vorotnik">Воротник</option>
+                        <option value="podsvetchnik">Подсвечник</option>
+                        <option value="korzina">Корзина</option>
+                        <option value="katholder">Катхолдер</option>
+                        <option value="obvesy">Обвесы</option>
+                        <option value="toys">Новогодние игрушки 🎄</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Цена, ₽</label>
+                    <input name="price" type="number" placeholder="9990" required class="admin-input">
+                </div>
+            </div>
+            
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Название товара</label>
+            <input name="title" placeholder="Сумка Kelly" required class="admin-input">
+            
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Цвет изделия</label>
+            <input name="color" placeholder="Белый жемчуг / Черный" class="admin-input">
+            
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Описание</label>
+            <textarea name="description" placeholder="Ручная работа..." rows="3" class="admin-input"></textarea>
+            
+            <label class="block text-xs uppercase tracking-wider text-taupe mb-1">Фотографии (можно несколько)</label>
+            <input name="images" type="file" accept="image/*" multiple class="admin-input bg-white">
+            
+            <button type="submit" class="btn-primary mt-2">Добавить товар</button>
+        </form>
+    </details>
 
-<!-- 3. СПИСОК ТОВАРОВ -->
-<section class="admin-block">
-  <h2>📦 Товары</h2>
-  {% for p in products %}
-  <div class="admin-row">
-    <div style="flex:1; min-width: 250px;">
-      <form action="/admin/product/{{ p['id'] }}/edit" method="post" class="admin-form">
-        <select name="category">
-          <option value="bags" {% if p['category']=='bags' %}selected{% endif %}>Сумки</option>
-          <option value="boxes" {% if p['category']=='boxes' %}selected{% endif %}>Шкатулки</option>
-          <option value="tops" {% if p['category']=='tops' %}selected{% endif %}>Топы</option>
-          <option value="shalstuki" {% if p['category']=='shalstuki' %}selected{% endif %}>Шалстуки</option>
-          <option value="partupei" {% if p['category']=='partupei' %}selected{% endif %}>Партупеи</option>
-          <option value="sumka-chehol" {% if p['category']=='sumka-chehol' %}selected{% endif %}>Сумка-чехол</option>
-          <option value="vorotnik" {% if p['category']=='vorotnik' %}selected{% endif %}>Воротник</option>
-          <option value="podsvetchnik" {% if p['category']=='podsvetchnik' %}selected{% endif %}>Подсвечник</option>
-          <option value="korzina" {% if p['category']=='korzina' %}selected{% endif %}>Корзина</option>
-          <option value="katholder" {% if p['category']=='katholder' %}selected{% endif %}>Катхолдер</option>
-          <option value="obvesy" {% if p['category']=='obvesy' %}selected{% endif %}>Обвесы</option>
-          <option value="toys" {% if p['category']=='toys' %}selected{% endif %}>Игрушки</option>
-        </select>
-        <input name="title" value="{{ p['title'] }}">
-        <textarea name="description" rows="2">{{ p['description'] }}</textarea>
-        <input name="price" type="number" value="{{ p['price'] }}">
-        <input name="color" value="{{ p['color'] }}" placeholder="Цвет">
-        <button type="submit">Сохранить</button>
-      </form>
-    </div>
-    <form action="/admin/product/{{ p['id'] }}/delete" method="post" onsubmit="return confirm('Удалить?')">
-      <button class="danger" style="padding: 10px;">Удалить</button>
-    </form>
-  </div>
-  {% endfor %}
-</section>
+    <!-- 3. СПИСОК ТОВАРОВ -->
+    <details class="admin-card">
+        <summary>📦 Список товаров ({{ products|length }})</summary>
+        {% for p in products %}
+        <div class="border-b border-hairline py-4 flex flex-col sm:flex-row gap-4 items-start">
+            <div class="flex-grow w-full">
+                <form action="/admin/product/{{ p['id'] }}/edit" method="post">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select name="category" class="admin-input mb-0">
+                            <option value="bags" {% if p['category']=='bags' %}selected{% endif %}>Сумки</option>
+                            <option value="boxes" {% if p['category']=='boxes' %}selected{% endif %}>Шкатулки</option>
+                            <option value="tops" {% if p['category']=='tops' %}selected{% endif %}>Топы</option>
+                            <option value="shalstuki" {% if p['category']=='shalstuki' %}selected{% endif %}>Шалстуки</option>
+                            <option value="partupei" {% if p['category']=='partupei' %}selected{% endif %}>Партупеи</option>
+                            <option value="sumka-chehol" {% if p['category']=='sumka-chehol' %}selected{% endif %}>Сумка-чехол</option>
+                            <option value="vorotnik" {% if p['category']=='vorotnik' %}selected{% endif %}>Воротник</option>
+                            <option value="podsvetchnik" {% if p['category']=='podsvetchnik' %}selected{% endif %}>Подсвечник</option>
+                            <option value="korzina" {% if p['category']=='korzina' %}selected{% endif %}>Корзина</option>
+                            <option value="katholder" {% if p['category']=='katholder' %}selected{% endif %}>Катхолдер</option>
+                            <option value="obvesy" {% if p['category']=='obvesy' %}selected{% endif %}>Обвесы</option>
+                            <option value="toys" {% if p['category']=='toys' %}selected{% endif %}>Игрушки</option>
+                        </select>
+                        <input name="price" type="number" value="{{ p['price'] }}" class="admin-input mb-0">
+                    </div>
+                    <input name="title" value="{{ p['title'] }}" class="admin-input mt-2">
+                    <input name="color" value="{{ p['color'] }}" class="admin-input" placeholder="Цвет">
+                    <textarea name="description" rows="2" class="admin-input">{{ p['description'] }}</textarea>
+                    <button type="submit" class="text-xs uppercase tracking-widest text-gold font-bold hover:text-espresso">Сохранить</button>
+                </form>
+            </div>
+            <form action="/admin/product/{{ p['id'] }}/delete" method="post" onsubmit="return confirm('Удалить?')" class="w-full sm:w-auto">
+                <button type="submit" class="btn-danger w-full">Удалить</button>
+            </form>
+        </div>
+        {% endfor %}
+    </details>
 
-<!-- 4. МАСТЕР-КЛАССЫ -->
-<section class="admin-block">
-  <h2>🎓 Мастер-классы</h2>
-  <form action="/admin/workshop/add" method="post" enctype="multipart/form-data" class="admin-form">
-    <input name="title" placeholder="Название" required>
-    <textarea name="description" placeholder="Описание" rows="2"></textarea>
-    <input name="link" placeholder="Ссылка на материал (если есть)">
-    
-    <label>Ссылка на видео (YouTube/VK):</label>
-    <input name="video" placeholder="https://youtube.com/...">
-    
-    <label>Обложка:</label>
-    <input name="image" type="file" accept="image/*">
-    
-    <button type="submit">Добавить мастер-класс</button>
-  </form>
-  
-  {% for w in workshops %}
-  <div class="admin-row" style="justify-content: space-between; align-items: center; margin-top: 10px;">
-    <b style="color:#c9a96e;">{{ w['title'] }}</b>
-    <form action="/admin/workshop/{{ w['id'] }}/delete" method="post">
-      <button class="danger" style="padding: 6px 14px;">Удалить</button>
-    </form>
-  </div>
-  {% endfor %}
-</section>
+    <!-- 4. МАСТЕР-КЛАССЫ -->
+    <details class="admin-card">
+        <summary>🎓 Мастер-классы</summary>
+        <form action="/admin/workshop/add" method="post" enctype="multipart/form-data" class="mb-6 border-b border-hairline pb-6">
+            <input name="title" placeholder="Название" required class="admin-input">
+            <textarea name="description" placeholder="Описание" rows="2" class="admin-input"></textarea>
+            <input name="video" placeholder="Ссылка на видео (YouTube)" class="admin-input">
+            <input name="image" type="file" accept="image/*" class="admin-input bg-white">
+            <button type="submit" class="btn-primary">Добавить мастер-класс</button>
+        </form>
+        {% for w in workshops %}
+        <div class="flex justify-between items-center border-b border-hairline py-3">
+            <b class="text-sm">{{ w['title'] }}</b>
+            <form action="/admin/workshop/{{ w['id'] }}/delete" method="post"><button class="btn-danger">Удалить</button></form>
+        </div>
+        {% endfor %}
+    </details>
 
-<!-- 5. ОТЗЫВЫ -->
-<section class="admin-block">
-  <h2>⭐ Отзывы</h2>
-  {% for r in reviews %}
-  <div class="admin-row" style="justify-content: space-between; align-items: center;">
-    <div>
-        <b style="color:#c9a96e;">{{ r['name'] }}</b> ({{ r['rating'] }} ★)<br>
-        <span style="color:#888; font-size:0.9rem;">{{ r['text'][:50] }}...</span>
-    </div>
-    <form action="/admin/review/{{ r['id'] }}/delete" method="post">
-      <button class="danger" style="padding: 6px 14px;">Удалить</button>
-    </form>
-  </div>
-  {% else %}
-  <p style="color:#888;">Отзывов пока нет.</p>
-  {% endfor %}
-</section>
+    <!-- 5. ОТЗЫВЫ -->
+    <details class="admin-card">
+        <summary>⭐ Отзывы ({{ reviews|length }})</summary>
+        {% for r in reviews %}
+        <div class="flex justify-between items-center border-b border-hairline py-3">
+            <div>
+                <b class="text-sm">{{ r['name'] }}</b> <span class="text-gold text-xs">{{ r['rating'] }}★</span>
+                <p class="text-xs text-taupe">{{ r['text'][:50] }}...</p>
+            </div>
+            <form action="/admin/review/{{ r['id'] }}/delete" method="post"><button class="btn-danger">Удалить</button></form>
+        </div>
+        {% else %}
+        <p class="text-sm text-taupe">Отзывов пока нет.</p>
+        {% endfor %}
+    </details>
 
 </div>
 </body>
