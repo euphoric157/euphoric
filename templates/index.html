@@ -70,6 +70,7 @@
         </div>
     </header>
 
+    <!-- Главный экран -->
     <section class="relative border-b border-hairline overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-20 lg:py-24">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -78,12 +79,9 @@
                         <span>Новогодняя коллекция 🎄</span>
                     </div>
                     <h1 class="font-serif text-4xl sm:text-6xl lg:text-[64px] leading-[1.08] font-normal text-espresso tracking-tight">
-                        Искусство <br class="hidden sm:inline"><span class="italic font-normal text-goldDark">в каждой детали</span>
+                        {{ site_settings.site_title }}
                     </h1>
                     <p class="text-sm sm:text-base text-taupe tracking-wide uppercase font-normal">Сумки &nbsp;·&nbsp; Шкатулки &nbsp;·&nbsp; Топы &nbsp;·&nbsp; Игрушки</p>
-                    <p class="text-sm sm:text-base text-espresso/80 leading-relaxed max-w-lg mx-auto lg:mx-0 font-light">
-                        Каждое изделие EUPHORIC сплетено вручную с ювелирной точностью. Аксессуары из перламутрового жемчуга и сияющих кристаллов, которые превращают повседневный образ в событие.
-                    </p>
                     <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
                         <a href="#catalog" class="w-full sm:w-auto px-8 py-4 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors text-center">Смотреть каталог</a>
                         <button onclick="openCustomOrderModal()" class="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent border border-espresso/30 text-espresso text-xs uppercase tracking-[0.16em] font-medium hover:border-espresso hover:bg-champagne/60 transition-colors">Индивидуальный заказ</button>
@@ -92,12 +90,11 @@
                 <div class="lg:col-span-6">
                     <div class="relative max-w-md mx-auto lg:max-w-none">
                         <div class="aspect-[4/5] rounded-2xl overflow-hidden bg-champagne border border-hairline shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1000&q=85" alt="Сумка ручной работы EUPHORIC" class="w-full h-full object-cover">
-                        </div>
-                        <div class="hidden sm:block absolute -bottom-6 -left-6 bg-alabaster/95 backdrop-blur-md border border-hairline rounded-2xl p-5 max-w-[230px] shadow-sm">
-                            <p class="font-serif italic text-lg text-espresso leading-snug">«Kelly» Pearl Edition</p>
-                            <p class="text-xs text-taupe mt-1">100% ручное плетение · 18 часов работы</p>
-                            <a href="#catalog" class="inline-block mt-3 text-[11px] uppercase tracking-widest text-goldDark font-medium hover:underline">В коллекцию →</a>
+                            {% if site_settings.banner_image %}
+                                <img src="/static/uploads/{{ site_settings.banner_image }}" alt="EUPHORIC" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-taupe/50 text-sm uppercase tracking-widest">Загрузите баннер в админке</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -105,6 +102,7 @@
         </div>
     </section>
 
+    <!-- Каталог -->
     <section id="catalog" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
@@ -120,12 +118,72 @@
         <div id="empty-wishlist-state" class="hidden text-center py-20 bg-champagne/50 rounded-2xl border border-hairline">
             <i data-lucide="heart" class="w-8 h-8 mx-auto text-taupe/60 mb-3 stroke-[1.5]"></i>
             <h3 class="font-serif text-2xl text-espresso mb-2">В избранном пока пусто</h3>
-            <p class="text-sm text-taupe mb-6">Нажмите на сердечко на карточке товара, чтобы сохранить понравившиеся изделия.</p>
             <button onclick="resetFilters()" class="px-6 py-3 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-widest hover:bg-goldDark transition-colors">Вернуться ко всем товарам</button>
         </div>
     </section>
 
-    <footer class="bg-espresso text-alabaster pt-16 pb-12 mt-10">
+    <!-- Мастер-классы -->
+    <section id="workshops" class="py-16 sm:py-24 bg-champagne border-y border-hairline">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="text-center max-w-xl mx-auto mb-10">
+                <span class="text-xs uppercase tracking-[0.2em] text-goldDark">Обучение</span>
+                <h2 class="font-serif text-3xl sm:text-5xl text-espresso mt-2">Мастер-классы</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for w in workshops %}
+                <div class="bg-alabaster border border-hairline rounded-2xl overflow-hidden shadow-sm flex flex-col">
+                    {% if w['image'] %}
+                        <img src="/static/uploads/{{ w['image'] }}" class="w-full h-48 object-cover">
+                    {% endif %}
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-serif text-2xl text-espresso mb-2">{{ w['title'] }}</h3>
+                            <p class="text-sm text-taupe leading-relaxed mb-4">{{ w['description'] }}</p>
+                        </div>
+                        {% if w['video'] %}
+                            <a href="{{ w['video'] }}" target="_blank" class="w-full py-2.5 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-widest text-center hover:bg-goldDark transition-colors">Смотреть видео</a>
+                        {% elif w['link'] %}
+                            <a href="{{ w['link'] }}" target="_blank" class="w-full py-2.5 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-widest text-center hover:bg-goldDark transition-colors">Открыть</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="col-span-3 text-center text-taupe">Мастер-классы скоро появятся...</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Отзывы -->
+    <section id="reviews" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div class="text-center max-w-xl mx-auto mb-10">
+            <span class="text-xs uppercase tracking-[0.2em] text-goldDark">Впечатления</span>
+            <h2 class="font-serif text-3xl sm:text-5xl text-espresso mt-2">Отзывы наших клиентов</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for r in reviews %}
+            <div class="p-7 rounded-2xl bg-champagne/60 border border-hairline flex flex-col justify-between">
+                <div>
+                    <div class="text-gold text-sm tracking-widest mb-4">{% for i in range(r['rating']) %}★{% endfor %}</div>
+                    <p class="text-sm text-espresso/85 leading-relaxed italic font-light">«{{ r['text'] }}»</p>
+                    {% if r['image'] %}
+                        <img src="/static/uploads/{{ r['image'] }}" class="mt-4 rounded-lg w-full h-40 object-cover">
+                    {% endif %}
+                </div>
+                <div class="mt-6 pt-4 border-t border-hairline flex items-center justify-between text-xs text-taupe">
+                    <span class="font-medium text-espresso">{{ r['name'] }}</span>
+                </div>
+            </div>
+            {% else %}
+            <p class="col-span-3 text-center text-taupe">Пока нет отзывов.</p>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-10">
+            <a href="/reviews" class="inline-block px-8 py-3 rounded-full border border-espresso text-espresso text-xs uppercase tracking-widest hover:bg-espresso hover:text-alabaster transition-colors">Оставить отзыв</a>
+        </div>
+    </section>
+
+    <footer class="bg-espresso text-alabaster pt-16 pb-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-alabaster/15">
                 <div class="md:col-span-5 space-y-4">
@@ -137,7 +195,7 @@
                     <ul class="space-y-2.5 text-sm text-alabaster/75 font-light">
                         <li><a href="#catalog" class="hover:text-alabaster transition-colors">Каталог изделий</a></li>
                         <li><a href="#workshops" class="hover:text-alabaster transition-colors">Мастер-классы</a></li>
-                        <li><a href="#reviews" class="hover:text-alabaster transition-colors">Отзывы покупателей</a></li>
+                        <li><a href="#reviews" class="hover:text-alabaster transition-colors">Отзывы</a></li>
                     </ul>
                 </div>
                 <div class="md:col-span-4 space-y-3">
@@ -157,7 +215,7 @@
         </div>
     </footer>
 
-    <!-- Модалка быстрого просмотра -->
+    <!-- Модалка товара, корзина и т.д. -->
     <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-espresso/50 backdrop-blur-sm">
         <div class="bg-alabaster border border-hairline rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl relative animate-fade-up">
             <button onclick="closeProductModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-alabaster/90 border border-hairline flex items-center justify-center text-espresso hover:text-gold"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -165,7 +223,6 @@
         </div>
     </div>
 
-    <!-- Корзина -->
     <div id="cart-drawer" class="fixed inset-0 z-50 hidden">
         <div onclick="toggleCart(false)" class="absolute inset-0 bg-espresso/45 backdrop-blur-xs transition-opacity"></div>
         <div class="absolute inset-y-0 right-0 max-w-md w-full bg-alabaster border-l border-hairline shadow-2xl flex flex-col justify-between">
@@ -184,18 +241,16 @@
         </div>
     </div>
 
-    <!-- Модалка индивидуального заказа -->
     <div id="custom-order-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-espresso/50 backdrop-blur-sm">
         <div class="bg-alabaster border border-hairline rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-fade-up text-center">
             <button onclick="closeCustomOrderModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-hairline flex items-center justify-center text-espresso hover:text-gold"><i data-lucide="x" class="w-4 h-4"></i></button>
             <span class="text-xs uppercase tracking-[0.2em] text-goldDark">Ателье EUPHORIC</span>
             <h3 class="font-serif text-3xl text-espresso mt-1 mb-2">Индивидуальный заказ</h3>
-            <p class="text-xs sm:text-sm text-taupe mb-6">Нажмите кнопку ниже, чтобы перейти в нашего Telegram-бота и обсудить детали заказа с мастером.</p>
+            <p class="text-xs sm:text-sm text-taupe mb-6">Нажмите кнопку ниже, чтобы перейти в Telegram-бота.</p>
             <button onclick="goToCustomOrder()" class="w-full py-4 rounded-full bg-espresso text-alabaster text-xs uppercase tracking-[0.16em] font-medium hover:bg-goldDark transition-colors">Перейти в Telegram</button>
         </div>
     </div>
 
-    <!-- Уведомление -->
     <div id="toast-notification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <div class="bg-espresso text-alabaster px-5 py-3.5 rounded-full shadow-lg border border-alabaster/10 flex items-center gap-3 text-xs tracking-wide">
             <span class="w-2 h-2 rounded-full bg-gold"></span>
@@ -204,9 +259,7 @@
     </div>
 
     <script>
-        // --- ДАННЫЕ ИЗ БАЗЫ FLASK ---
         const CATEGORIES = ["Все", "Сумки", "Шкатулки", "Топы", "Другие аксессуары", "Новогодние игрушки"];
-        
         const PRODUCTS = [
             {% for p in products %}
             {
@@ -221,24 +274,18 @@
             {% endfor %}
         ];
 
-        // Сопоставление английских категорий из базы с русскими для фильтра
         const CAT_MAP = {
             "bags": "Сумки", "boxes": "Шкатулки", "tops": "Топы", "toys": "Новогодние игрушки",
             "shalstuki": "Другие аксессуары", "partupei": "Другие аксессуары", "sumka-chehol": "Другие аксессуары",
             "vorotnik": "Другие аксессуары", "podsvetchnik": "Другие аксессуары", "korzina": "Другие аксессуары",
             "katholder": "Другие аксессуары", "obvesy": "Другие аксессуары"
         };
-
-        // Заменяем английские категории на русские для отображения
         PRODUCTS.forEach(p => { p.category = CAT_MAP[p.category] || p.category; });
 
-        let activeCategory = "Все";
-        let showOnlyWishlist = false;
-        let wishlist = JSON.parse(localStorage.getItem('euphoric_favs')) || [];
-        let cart = [];
+        let activeCategory = "Все", showOnlyWishlist = false;
+        let wishlist = JSON.parse(localStorage.getItem('euphoric_favs')) || [], cart = [];
 
         function formatPrice(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ₽"; }
-
         let toastTimeout;
         function showToast(message) {
             const toast = document.getElementById('toast-notification');
@@ -357,57 +404,4 @@
             const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
             document.getElementById('cart-count').textContent = totalItems;
             document.getElementById('cart-total-price').textContent = formatPrice(totalPrice);
-            const container = document.getElementById('cart-items-container');
-            const footer = document.getElementById('cart-footer');
-
-            if (cart.length === 0) {
-                footer.classList.add('hidden');
-                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center py-12"><i data-lucide="shopping-bag" class="w-10 h-10 text-taupe/50 mb-3"></i><p class="font-serif text-2xl text-espresso mb-1">Корзина пуста</p></div>`;
-                lucide.createIcons(); return;
-            }
-            footer.classList.remove('hidden');
-            container.innerHTML = cart.map(item => `
-                <div class="flex gap-4 pb-5 border-b border-hairline">
-                    <img src="${item.image}" class="w-20 h-24 rounded-xl object-cover border border-hairline">
-                    <div class="flex-1 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start gap-2"><h4 class="font-serif text-xl text-espresso">${item.name}</h4><span class="text-sm font-medium text-espresso">${formatPrice(item.price * item.qty)}</span></div>
-                            <p class="text-[11px] uppercase tracking-wider text-taupe">${item.category}</p>
-                        </div>
-                        <div class="flex items-center gap-3 mt-2">
-                            <div class="inline-flex items-center border border-hairline rounded-full bg-champagne/50">
-                                <button onclick="changeCartQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">−</button>
-                                <span class="px-2.5 text-xs font-medium">${item.qty}</span>
-                                <button onclick="changeCartQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center text-espresso hover:text-gold">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`).join('');
-        }
-
-        function toggleCart(open) {
-            const drawer = document.getElementById('cart-drawer');
-            if (open) { drawer.classList.remove('hidden'); updateCartUI(); } else { drawer.classList.add('hidden'); }
-        }
-
-        function submitOrder() {
-            if (cart.length === 0) return;
-            let ids = cart.map(item => item.id).join(',');
-            window.open('https://t.me/{{ bot }}?start=buy_cart_' + ids, '_blank');
-            cart = [];
-            updateCartUI();
-            toggleCart(false);
-            showToast('Заказ сформирован! Перейдите в Telegram.');
-        }
-
-        function openCustomOrderModal() { document.getElementById('custom-order-modal').classList.remove('hidden'); document.getElementById('custom-order-modal').classList.add('flex'); }
-        function closeCustomOrderModal() { document.getElementById('custom-order-modal').classList.add('hidden'); document.getElementById('custom-order-modal').classList.remove('flex'); }
-        function goToCustomOrder() { window.open('https://t.me/{{ bot }}?start=custom_order', '_blank'); closeCustomOrderModal(); }
-
-        document.getElementById('mobile-menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
-        function closeMobileMenu() { document.getElementById('mobile-menu').classList.add('hidden'); }
-
-        window.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); updateHeaderWishlistUI(); renderCategories(); renderProducts(); updateCartUI(); });
-    </script>
-</body>
-</html>
+            const container = document.getElementById('cart-items
